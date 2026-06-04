@@ -1,0 +1,6 @@
+node_modules/
+.env
+
+../python-service/__pycache__/
+../python-service/model/
+../python-service/venv/
