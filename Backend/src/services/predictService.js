@@ -81,12 +81,11 @@ const createMaintenanceTicket = async (
     `
     INSERT INTO maintenance_tickets (
       machine_id,
-      failure_statistic_id,
-      status
+      failure_statistic_id
     )
-    VALUES ($1,$2,$3)
+    VALUES ($1,$2)
     `,
-    [machineId, failureStatisticId, "Open"],
+    [machineId, failureStatisticId],
   );
 };
 

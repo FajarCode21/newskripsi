@@ -4,7 +4,8 @@ import machineValidator from "../validators/machine/index.js";
 const machineController = {
   getAll: async (req, res, next) => {
     try {
-      const machines = await machineService.getAll();
+      const search = req.query.search || "";
+      const machines = await machineService.getAll(search);
       res.status(200).json({
         status: "success",
         data: {

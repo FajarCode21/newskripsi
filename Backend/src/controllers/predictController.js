@@ -7,7 +7,6 @@ const predictController = {
       const data = req.body;
       const results = await dataSensorService.create(data);
       for (const sensor of results) {
-        console.log(sensor);
         await predictProducer.sendPredictionJob(sensor);
       }
       res.status(201).json({

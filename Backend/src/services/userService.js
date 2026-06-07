@@ -101,19 +101,28 @@ const userService = {
     }
   },
 
-  getAll: async () => {
-    const { rows } = await pool.query(`
-      SELECT
-        id,
-        employee_id,
-        name,
-        email,
-        role,
-        created_at
-      FROM users
-      WHERE role = 'Engineer'
-      ORDER BY created_at DESC
-    `);
+  getAll: async (search = "") => {
+    const keyword = `%${search}%`;
+
+    const { rows } = await pool.query(
+      `
+    SELECT
+      id,
+      employee_id,
+      name,
+      email,
+      status,
+      role,
+      created_at
+    FROM users
+    WHERE
+      ($1 = '%%'
+        OR name ILIKE $1
+        OR email ILIKE $1)
+    ORDER BY role ASC, created_at DESC
+    `,
+      [keyword],
+    );
 
     return rows;
   },
@@ -126,6 +135,7 @@ const userService = {
         employee_id,
         name,
         email,
+        status,
         role,
         created_at
       FROM users

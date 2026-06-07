@@ -1,10 +1,10 @@
 export const up = (pgm) => {
-  pgm.createType("status_maintencance_enum", [
-    "Open",
+  pgm.createType("status_maintenance_enum", [
+    "WaitingAssignment",
+    "Assigned",
     "InProgress",
     "WaitingApproval",
     "Done",
-    "Rejected",
   ]);
 
   pgm.createTable("maintenance_tickets", {
@@ -27,9 +27,9 @@ export const up = (pgm) => {
       onDelete: "set null",
     },
     status: {
-      type: "status_maintencance_enum",
+      type: "status_maintenance_enum",
       notNull: true,
-      default: "Open",
+      default: "WaitingAssignment",
     },
     created_at: {
       type: "timestamp",
@@ -47,5 +47,5 @@ export const up = (pgm) => {
 
 export const down = (pgm) => {
   pgm.dropTable("maintenance_tickets");
-  pgm.dropType("status_maintencance_enum");
+  pgm.dropType("status_maintenance_enum");
 };

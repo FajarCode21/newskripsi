@@ -2,16 +2,35 @@ import pool from "../utils/pool.js";
 import NotFoundError from "../exceptions/NotFoundError.js";
 
 const machineService = {
-  getAll: async () => {
+  getAll: async (search = "") => {
+    const keyword = `%${search}%`;
+
     const { rows } = await pool.query(
-      "SELECT id, code, name, type, location, install_date FROM machines",
+      `
+    SELECT
+      id,
+      code,
+      name,
+      type,
+      status,
+      location,
+      install_date
+    FROM machines
+    WHERE
+      ($1 = '%%'
+        OR name ILIKE $1
+        OR code ILIKE $1)
+    ORDER BY install_date DESC
+    `,
+      [keyword],
     );
+
     return rows;
   },
 
   getById: async (id) => {
     const { rows } = await pool.query(
-      "SELECT id, code, name, type, location, install_date FROM machines WHERE id = $1",
+      "SELECT id, code, name, type, status, location, install_date FROM machines WHERE id = $1",
       [id],
     );
     if (!rows.length) {

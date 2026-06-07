@@ -55,7 +55,8 @@ const userController = {
 
   getAll: async (req, res, next) => {
     try {
-      const users = await userService.getAll();
+      const search = req.query.search || "";
+      const users = await userService.getAll(search);
       res.status(200).json({
         status: "success",
         data: {
