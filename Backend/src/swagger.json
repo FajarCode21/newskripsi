@@ -1,0 +1,1522 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Maintenance Management System API",
+    "description": "REST API untuk sistem manajemen pemeliharaan mesin industri, mencakup autentikasi, manajemen pengguna, mesin, prediksi sensor, tiket pemeliharaan, dan dashboard.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Login, refresh token, dan logout"
+    },
+    { "name": "Users", "description": "Manajemen data pengguna" },
+    { "name": "Machines", "description": "Manajemen data mesin" },
+    { "name": "Predict", "description": "Kirim data sensor untuk prediksi" },
+    {
+      "name": "Ticket Maintenance",
+      "description": "Manajemen tiket pemeliharaan"
+    },
+    { "name": "Dashboard", "description": "Data ringkasan dashboard" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Masukkan access token JWT yang diperoleh dari endpoint login"
+      }
+    },
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "fail" },
+          "message": { "type": "string", "example": "Pesan error" }
+        }
+      },
+      "UserData": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "employee_id": { "type": "string", "example": "EMP-001" },
+          "name": { "type": "string", "example": "John Doe" },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["Admin", "Engineer"],
+            "example": "Engineer"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Active", "Onduty"],
+            "example": "Active"
+          },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MachineData": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "code": { "type": "string", "example": "MCH-001" },
+          "name": { "type": "string", "example": "Mesin Bubut A1" },
+          "type": { "type": "string", "example": "Lathe" },
+          "status": {
+            "type": "string",
+            "enum": ["Active", "Maintenance"],
+            "example": "Active"
+          },
+          "location": { "type": "string", "example": "Lantai 1 - Area A" },
+          "install_date": {
+            "type": "string",
+            "format": "date",
+            "example": "2022-01-15"
+          }
+        }
+      },
+      "TicketData": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WaitingAssignment",
+              "Assigned",
+              "InProgress",
+              "WaitingApproval",
+              "Done"
+            ],
+            "example": "WaitingAssignment"
+          },
+          "machine_name": { "type": "string", "example": "Mesin Bubut A1" },
+          "type": { "type": "string", "example": "Tool Wear Failure" },
+          "assigned_engineer_id": {
+            "type": "integer",
+            "nullable": true,
+            "example": 2
+          },
+          "engineer_name": {
+            "type": "string",
+            "nullable": true,
+            "example": "Jane Smith"
+          },
+          "description": { "type": "string", "nullable": true },
+          "action_taken": { "type": "string", "nullable": true },
+          "notes": { "type": "string", "nullable": true },
+          "duration_hours": { "type": "number", "nullable": true },
+          "image_url": {
+            "type": "string",
+            "nullable": true,
+            "example": "http://localhost:3000/uploads/reports/xxx.webp"
+          },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SensorData": {
+        "type": "object",
+        "required": [
+          "date_time",
+          "rotational_speed",
+          "process_temperature",
+          "air_temperature",
+          "torque",
+          "tool_wear",
+          "machine_age_hours",
+          "hours_since_last",
+          "temp_rate_of_change",
+          "rpm_variance",
+          "machine_id"
+        ],
+        "properties": {
+          "date_time": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-06-01T08:00:00Z"
+          },
+          "rotational_speed": { "type": "number", "example": 1500 },
+          "process_temperature": { "type": "number", "example": 310.5 },
+          "air_temperature": { "type": "number", "example": 298.2 },
+          "torque": { "type": "number", "example": 45.3 },
+          "tool_wear": { "type": "number", "example": 120 },
+          "machine_age_hours": { "type": "number", "example": 5000 },
+          "hours_since_last": { "type": "number", "example": 48 },
+          "temp_rate_of_change": { "type": "number", "example": 0.5 },
+          "rpm_variance": { "type": "number", "example": 12.3 },
+          "machine_id": { "type": "integer", "example": 1 }
+        }
+      },
+      "TicketDetailData": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "status": { "type": "string", "example": "Assigned" },
+          "machine_name": { "type": "string", "example": "Mesin Bubut A1" },
+          "rul_hours": { "type": "number", "example": 120.5 },
+          "rul_days": { "type": "number", "example": 5.02 },
+          "maintenance_status": { "type": "string", "example": "Critical" },
+          "priority": { "type": "string", "example": "High" },
+          "action": {
+            "type": "string",
+            "example": "Segera lakukan penggantian komponen"
+          },
+          "confidence": { "type": "number", "example": 0.92 },
+          "type": { "type": "string", "example": "Tool Wear Failure" },
+          "assigned_engineer_id": { "type": "integer", "nullable": true },
+          "engineer_name": { "type": "string", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Token tidak valid atau tidak ada",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "status": "fail", "message": "Token tidak valid" }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Tidak memiliki izin akses",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "status": "fail", "message": "Akses ditolak" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Data tidak ditemukan",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "status": "fail", "message": "Data tidak ditemukan" }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/auth": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login pengguna",
+        "description": "Autentikasi pengguna menggunakan email dan password. Mengembalikan access token (di body) dan refresh token (di cookie HttpOnly).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "admin@example.com"
+                  },
+                  "password": { "type": "string", "example": "password123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login berhasil",
+            "headers": {
+              "Set-Cookie": {
+                "description": "refreshToken cookie (HttpOnly)",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "integer", "example": 1 },
+                            "name": {
+                              "type": "string",
+                              "example": "Admin User"
+                            },
+                            "email": {
+                              "type": "string",
+                              "example": "admin@example.com"
+                            },
+                            "role": { "type": "string", "example": "Admin" }
+                          }
+                        },
+                        "accessToken": {
+                          "type": "string",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email atau password salah",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "status": "fail",
+                  "message": "Username atau password salah"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Authentication"],
+        "summary": "Refresh access token",
+        "description": "Menggunakan refresh token dari cookie untuk mendapatkan access token baru. Refresh token lama akan diganti dengan yang baru.",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "refreshToken",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Refresh token yang disimpan di cookie"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token berhasil diperbarui",
+            "headers": {
+              "Set-Cookie": {
+                "description": "refreshToken cookie baru (HttpOnly)",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "integer" },
+                            "name": { "type": "string" },
+                            "email": { "type": "string" },
+                            "role": { "type": "string" }
+                          }
+                        },
+                        "accessToken": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Refresh token tidak valid atau tidak ditemukan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Authentication"],
+        "summary": "Logout pengguna",
+        "description": "Menghapus refresh token dari database dan membersihkan cookie.",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "refreshToken",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": {
+                      "type": "string",
+                      "example": "Logout berhasil"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Refresh token tidak ditemukan di cookie",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Ambil semua pengguna",
+        "description": "Mengambil daftar seluruh pengguna. Hanya bisa diakses oleh Admin.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "description": "Cari pengguna berdasarkan nama atau email"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar pengguna berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "users": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/UserData" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Buat pengguna baru",
+        "description": "Membuat pengguna baru. Hanya bisa diakses oleh Admin.",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "employee_id",
+                  "name",
+                  "email",
+                  "password",
+                  "role"
+                ],
+                "properties": {
+                  "employee_id": { "type": "string", "example": "EMP-005" },
+                  "name": { "type": "string", "example": "Jane Smith" },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "jane@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "securePass123"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["Admin", "Engineer"],
+                    "example": "Engineer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pengguna berhasil dibuat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": { "$ref": "#/components/schemas/UserData" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Data tidak valid atau email sudah digunakan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "status": "fail",
+                  "message": "Email sudah digunakan"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Ambil pengguna berdasarkan ID",
+        "description": "Mengambil detail pengguna berdasarkan ID. Hanya bisa diakses oleh Admin.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID pengguna"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data pengguna berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "user": { "$ref": "#/components/schemas/UserData" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Users"],
+        "summary": "Perbarui data pengguna",
+        "description": "Memperbarui nama, password, dan/atau role pengguna. Pengguna hanya bisa memperbarui data dirinya sendiri, kecuali Admin yang bisa memperbarui siapa saja dan mengubah role.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID pengguna yang akan diperbarui"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "Jane Smith Updated" },
+                  "password": {
+                    "type": "string",
+                    "example": "newSecurePass123"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["Admin", "Engineer"],
+                    "description": "Hanya bisa diubah oleh Admin",
+                    "example": "Admin"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pengguna berhasil diperbarui",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": {
+                      "type": "string",
+                      "example": "User berhasil diperbarui"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Hapus pengguna",
+        "description": "Menghapus pengguna berdasarkan ID. Hanya bisa diakses oleh Admin.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID pengguna yang akan dihapus"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pengguna berhasil dihapus",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": {
+                      "type": "string",
+                      "example": "User berhasil dihapus"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/machines": {
+      "get": {
+        "tags": ["Machines"],
+        "summary": "Ambil semua mesin",
+        "description": "Mengambil daftar seluruh mesin. Bisa diakses oleh Admin dan Engineer.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" },
+            "description": "Cari mesin berdasarkan nama atau kode mesin"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar mesin berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "machines": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/MachineData"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Machines"],
+        "summary": "Tambah mesin baru",
+        "description": "Membuat data mesin baru. Hanya bisa diakses oleh Admin.",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "code",
+                  "type",
+                  "location",
+                  "install_date"
+                ],
+                "properties": {
+                  "name": { "type": "string", "example": "Mesin Frais B2" },
+                  "code": { "type": "string", "example": "MCH-002" },
+                  "type": { "type": "string", "example": "Milling" },
+                  "location": {
+                    "type": "string",
+                    "example": "Lantai 2 - Area B"
+                  },
+                  "install_date": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2023-03-20"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mesin berhasil ditambahkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "machine": {
+                          "$ref": "#/components/schemas/MachineData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Data tidak valid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/machines/{id}": {
+      "get": {
+        "tags": ["Machines"],
+        "summary": "Ambil mesin berdasarkan ID",
+        "description": "Mengambil detail mesin berdasarkan ID.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID mesin"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data mesin berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "machine": {
+                          "$ref": "#/components/schemas/MachineData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Machines"],
+        "summary": "Perbarui data mesin",
+        "description": "Memperbarui data mesin berdasarkan ID. Hanya bisa diakses oleh Admin.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID mesin yang akan diperbarui"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "code",
+                  "type",
+                  "location",
+                  "install_date"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Mesin Frais B2 Updated"
+                  },
+                  "code": { "type": "string", "example": "MCH-002" },
+                  "type": { "type": "string", "example": "Milling" },
+                  "location": {
+                    "type": "string",
+                    "example": "Lantai 2 - Area C"
+                  },
+                  "install_date": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2023-03-20"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mesin berhasil diperbarui",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "machine": {
+                          "$ref": "#/components/schemas/MachineData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Machines"],
+        "summary": "Hapus mesin",
+        "description": "Menghapus data mesin berdasarkan ID. Hanya bisa diakses oleh Admin.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID mesin yang akan dihapus"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mesin berhasil dihapus",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": {
+                      "type": "string",
+                      "example": "Machine deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/predict": {
+      "post": {
+        "tags": ["Predict"],
+        "summary": "Kirim data sensor untuk prediksi",
+        "description": "Menerima data sensor dari mesin (single atau batch), menyimpannya ke database, lalu mengirim ke antrian prediksi untuk diproses oleh model ML. Tidak memerlukan autentikasi (dipanggil oleh sistem IoT/sensor).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "title": "Single sensor data",
+                    "$ref": "#/components/schemas/SensorData"
+                  },
+                  {
+                    "title": "Batch sensor data",
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/SensorData" }
+                  }
+                ]
+              },
+              "examples": {
+                "single": {
+                  "summary": "Single data",
+                  "value": {
+                    "date_time": "2024-06-01T08:00:00Z",
+                    "rotational_speed": 1500,
+                    "process_temperature": 310.5,
+                    "air_temperature": 298.2,
+                    "torque": 45.3,
+                    "tool_wear": 120,
+                    "machine_age_hours": 5000,
+                    "hours_since_last": 48,
+                    "temp_rate_of_change": 0.5,
+                    "rpm_variance": 12.3,
+                    "machine_id": 1
+                  }
+                },
+                "batch": {
+                  "summary": "Batch data",
+                  "value": [
+                    {
+                      "date_time": "2024-06-01T08:00:00Z",
+                      "rotational_speed": 1500,
+                      "process_temperature": 310.5,
+                      "air_temperature": 298.2,
+                      "torque": 45.3,
+                      "tool_wear": 120,
+                      "machine_age_hours": 5000,
+                      "hours_since_last": 48,
+                      "temp_rate_of_change": 0.5,
+                      "rpm_variance": 12.3,
+                      "machine_id": 1
+                    },
+                    {
+                      "date_time": "2024-06-01T08:05:00Z",
+                      "rotational_speed": 1520,
+                      "process_temperature": 312.0,
+                      "air_temperature": 298.5,
+                      "torque": 46.0,
+                      "tool_wear": 122,
+                      "machine_age_hours": 5001,
+                      "hours_since_last": 49,
+                      "temp_rate_of_change": 0.6,
+                      "rpm_variance": 13.0,
+                      "machine_id": 2
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Data sensor berhasil dibuat dan dikirim ke antrian prediksi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": {
+                      "type": "string",
+                      "example": "Data sensor berhasil dibuat dan dikirim ke antrian prediksi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Data sensor tidak valid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ticket-maintenance": {
+      "get": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Ambil semua tiket",
+        "description": "Admin mendapat semua tiket. Engineer hanya mendapat tiket yang ditugaskan kepadanya.",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Daftar tiket berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "tickets": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/TicketData" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/ticket-maintenance/{id}": {
+      "get": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Ambil tiket berdasarkan ID",
+        "description": "Mengambil detail tiket berdasarkan ID. Admin bisa melihat semua tiket, Engineer hanya bisa melihat tiket miliknya.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID tiket"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail tiket berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ticket": {
+                          "$ref": "#/components/schemas/TicketDetailData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/api/ticket-maintenance/{id}/assign": {
+      "patch": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Tugaskan engineer ke tiket",
+        "description": "Admin menugaskan seorang engineer ke tiket. Status tiket harus `WaitingAssignment`, akan berubah menjadi `Assigned`.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID tiket"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["assigned_engineer_id"],
+                "properties": {
+                  "assigned_engineer_id": {
+                    "type": "integer",
+                    "description": "ID pengguna dengan role Engineer",
+                    "example": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tiket berhasil ditugaskan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status tiket bukan WaitingAssignment atau engineer tidak ditemukan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/ticket-maintenance/{id}/start": {
+      "patch": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Mulai pengerjaan tiket",
+        "description": "Engineer memulai pengerjaan tiket yang telah ditugaskan kepadanya. Status tiket harus `Assigned`, akan berubah menjadi `InProgress`. Status engineer menjadi `Onduty` dan status mesin menjadi `Maintenance`.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID tiket"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tiket berhasil dimulai",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": {
+            "description": "Engineer bukan pemilik tiket ini atau status tiket tidak sesuai",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ticket-maintenance/{id}/submit": {
+      "patch": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Submit laporan penyelesaian",
+        "description": "Engineer mengirimkan laporan penyelesaian beserta foto bukti. Status tiket harus `InProgress`, akan berubah menjadi `WaitingApproval`. Request menggunakan `multipart/form-data`.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID tiket"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "description",
+                  "action_taken",
+                  "duration_hours",
+                  "image"
+                ],
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Deskripsi masalah yang ditemukan",
+                    "example": "Ditemukan keausan pada mata pahat akibat gesekan berlebih"
+                  },
+                  "action_taken": {
+                    "type": "string",
+                    "description": "Tindakan yang dilakukan",
+                    "example": "Penggantian mata pahat dan pelumasan ulang"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Catatan tambahan (opsional)",
+                    "example": "Disarankan pengecekan rutin setiap 200 jam"
+                  },
+                  "duration_hours": {
+                    "type": "number",
+                    "description": "Lama pengerjaan dalam jam",
+                    "example": 2.5
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Foto bukti pekerjaan (wajib). Akan dikonversi ke format WebP."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Laporan berhasil disubmit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Data tidak valid atau gambar tidak diunggah",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "status": "fail",
+                  "message": "Gambar wajib diunggah"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/ticket-maintenance/{id}/approve": {
+      "patch": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Setujui penyelesaian tiket",
+        "description": "Admin menyetujui laporan penyelesaian. Status tiket harus `WaitingApproval`, akan berubah menjadi `Done`. Status engineer kembali menjadi `Active` dan status mesin kembali menjadi `Active`.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID tiket"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tiket berhasil disetujui",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status tiket bukan WaitingApproval",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/dashboard": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Ambil data dashboard",
+        "description": "Mengambil semua data ringkasan untuk dashboard: total mesin, status mesin, tiket aktif, status engineer, jenis kerusakan, mesin kritis, mesin bermasalah, pemeliharaan bulanan, dan tiket terbaru.",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Data dashboard berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "summary": {
+                          "type": "object",
+                          "properties": {
+                            "total_machines": {
+                              "type": "integer",
+                              "example": 25
+                            },
+                            "active_tickets": {
+                              "type": "integer",
+                              "example": 4
+                            }
+                          }
+                        },
+                        "machine_status": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "status": {
+                                "type": "string",
+                                "example": "Active"
+                              },
+                              "total": { "type": "string", "example": "20" }
+                            }
+                          }
+                        },
+                        "engineer_status": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "status": {
+                                "type": "string",
+                                "example": "Active"
+                              },
+                              "total": { "type": "string", "example": "8" }
+                            }
+                          }
+                        },
+                        "ticket_status": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "status": { "type": "string", "example": "Done" },
+                              "total": { "type": "string", "example": "50" }
+                            }
+                          }
+                        },
+                        "failure_types": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "example": "Tool Wear Failure"
+                              },
+                              "total": { "type": "string", "example": "15" }
+                            }
+                          }
+                        },
+                        "critical_machines": {
+                          "type": "array",
+                          "description": "5 mesin dengan RUL (Remaining Useful Life) terendah",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "integer" },
+                              "name": {
+                                "type": "string",
+                                "example": "Mesin Bubut A1"
+                              },
+                              "rul_days": { "type": "number", "example": 2.5 }
+                            }
+                          }
+                        },
+                        "problematic_machines": {
+                          "type": "array",
+                          "description": "5 mesin dengan jumlah tiket kerusakan terbanyak",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "integer" },
+                              "name": {
+                                "type": "string",
+                                "example": "Mesin Press C3"
+                              },
+                              "total_failure": {
+                                "type": "string",
+                                "example": "7"
+                              }
+                            }
+                          }
+                        },
+                        "monthly_maintenance": {
+                          "type": "array",
+                          "description": "Jumlah tiket per bulan",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "month": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "total": { "type": "string", "example": "12" }
+                            }
+                          }
+                        },
+                        "latest_tickets": {
+                          "type": "array",
+                          "description": "10 tiket terbaru",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "integer" },
+                              "status": { "type": "string" },
+                              "machine_name": { "type": "string" },
+                              "type": { "type": "string" },
+                              "engineer_name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    }
+  }
+}

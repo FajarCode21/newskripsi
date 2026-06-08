@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "./swagger.json" with { type: "json" };
 import "dotenv/config";
 
 import { connectRabbitMQ } from "./brokers/rabbitmq.js";
@@ -18,9 +20,13 @@ await predictionConsumer.start();
 
 app.use(cors());
 app.use(cookieParser());
-app.use(express.json());
+app.use(
+  express.json({
+    limit: "10mb",
+  }),
+);
 app.use("/uploads", express.static(path.resolve("uploads")));
-
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(routes);
 app.use(notFoundHandler);
 app.use(errorHandler);
