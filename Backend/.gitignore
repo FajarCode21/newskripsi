@@ -4,3 +4,5 @@ node_modules/
 ../python-service/__pycache__/
 ../python-service/model/
 ../python-service/venv/
+
+uploads/

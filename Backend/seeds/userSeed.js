@@ -11,7 +11,7 @@ const userSeed = async () => {
     (
       'ADMIN001',
       'Admin User',
-      'admin123@example.com',
+      'admin123@gmail.com',
       '$2a$12$tFs7xFXnTWL1XoAU/1ORkO3BteofbU.jC6qfjCWW7HTCqRJKKhwAW', 
       'Admin'
     )
