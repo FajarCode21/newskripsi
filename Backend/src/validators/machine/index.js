@@ -2,15 +2,15 @@ import machineSchema from "./schema.js";
 import InvariantError from "../../exceptions/InvariantError.js";
 
 const machineValidator = {
-  postPayload: (payload) => {
-    const { error } = machineSchema.post.validate(payload);
+  postMachinePayload: (payload) => {
+    const { error } = machineSchema.postMachine.validate(payload);
     if (error) {
       throw new InvariantError(error.message);
     }
   },
 
-  putPayload: (payload) => {
-    const { error } = machineSchema.put.validate(payload);
+  putMachinePayload: (payload) => {
+    const { error } = machineSchema.putMachine.validate(payload);
     if (error) {
       throw new InvariantError(error.message);
     }

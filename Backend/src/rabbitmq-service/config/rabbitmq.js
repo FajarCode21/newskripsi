@@ -1,29 +1,27 @@
-import amqp from 'amqplib';
+import amqp from "amqplib";
 
 let connection;
 let channel;
 
 export const connectRabbitMQ = async () => {
-  connection = await amqp.connect(
-    process.env.RABBITMQ_URL,
-);
+  connection = await amqp.connect(process.env.RABBITMQ_URL);
 
   channel = await connection.createChannel();
 
-  await channel.assertQueue('prediction_queue', {
+  await channel.assertQueue("prediction_queue", {
     durable: true,
   });
 
-  await channel.assertQueue('prediction_result_queue', {
+  await channel.assertQueue("prediction_result_queue", {
     durable: true,
   });
 
-  console.log('RabbitMQ Connected');
+  console.log("RabbitMQ Connected");
 };
 
 export const getChannel = () => {
   if (!channel) {
-    throw new Error('RabbitMQ belum terkoneksi');
+    throw new Error("RabbitMQ belum terkoneksi");
   }
 
   return channel;

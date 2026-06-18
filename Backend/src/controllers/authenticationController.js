@@ -3,8 +3,8 @@ import authenticationValidator from "../validators/authentication/index.js";
 import authenticationService from "../services/authenticationService.js";
 const isProduction = process.env.PROD === "true";
 
-const autenticationController = {
-  post: async (req, res, next) => {
+const authenticationController = {
+  postAuthentication: async (req, res, next) => {
     try {
       await authenticationValidator.postUserPayload(req.body);
       const { email, password } = req.body;
@@ -14,7 +14,7 @@ const autenticationController = {
         password,
       );
 
-      await authenticationService.deleteByUserId(user.id);
+      await authenticationService.deleteAuthenticationByUserId(user.id);
 
       const accessToken = await tokenManager.generateAccessToken({
         id_user: user.id,
@@ -30,7 +30,7 @@ const autenticationController = {
         role: user.role,
       });
 
-      await authenticationService.create(user.id, refreshToken);
+      await authenticationService.createAuthentication(user.id, refreshToken);
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -56,15 +56,15 @@ const autenticationController = {
     }
   },
 
-  put: async (req, res, next) => {
+  putAuthentication: async (req, res, next) => {
     try {
-      await authenticationValidator.putPayload(req.cookies);
+      await authenticationValidator.putAuthenticationPayload(req.cookies);
       const { refreshToken } = req.cookies;
 
       const { id_user, name, email, role } =
         await tokenManager.verifyRefreshToken(refreshToken);
       await authenticationService.verifyToken(refreshToken);
-      await authenticationService.delete(refreshToken);
+      await authenticationService.deleteAuthentication(refreshToken);
 
       const accessToken = await tokenManager.generateAccessToken({
         id_user,
@@ -80,7 +80,10 @@ const autenticationController = {
         role,
       });
 
-      await authenticationService.create(id_user, newRefreshToken);
+      await authenticationService.createAuthentication(
+        id_user,
+        newRefreshToken,
+      );
 
       res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
@@ -106,12 +109,12 @@ const autenticationController = {
     }
   },
 
-  delete: async (req, res, next) => {
+  deleteAuthentication: async (req, res, next) => {
     try {
-      await authenticationValidator.deletePayload(req.cookies);
+      await authenticationValidator.deleteAuthenticationPayload(req.cookies);
       const { refreshToken } = req.cookies;
 
-      await authenticationService.delete(refreshToken);
+      await authenticationService.deleteAuthentication(refreshToken);
 
       res.clearCookie("refreshToken", {
         httpOnly: true,
@@ -126,4 +129,4 @@ const autenticationController = {
   },
 };
 
-export default autenticationController;
+export default authenticationController;

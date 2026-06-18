@@ -1,4 +1,4 @@
-import pool from "../utils/pool.js";
+import pool from "../config/pool.js";
 
 const dashboardService = {
   getDashboard: async () => {

@@ -1,4 +1,4 @@
-import pool from "../utils/pool.js";
+import pool from "../config/pool.js";
 import ForbiddenError from "../exceptions/ForbiddenError.js";
 import NotFoundError from "../exceptions/NotFoundError.js";
 import fs from "fs/promises";
@@ -100,7 +100,7 @@ const verifyStatus = async (ticket_id, expectedStatus) => {
 };
 
 const ticketMaintenanceService = {
-  getAll: async (user_id, role) => {
+  getAllTickets: async (user_id, role) => {
     let query = `
       SELECT
         mt.id,
@@ -137,15 +137,10 @@ const ticketMaintenanceService = {
 
     const { rows } = await pool.query(query, params);
 
-    return rows.map((row) => ({
-      ...row,
-      image_url: row.image_url
-        ? `${process.env.BASE_URL}${row.image_url}`
-        : null,
-    }));
+    return rows;
   },
 
-  getById: async (id, user_id, role) => {
+  getTicketById: async (id, user_id, role) => {
     if (role !== "Admin" && !(await verifyUser(id, user_id))) {
       throw new ForbiddenError(
         "Anda tidak memiliki izin untuk melihat tiket ini",
@@ -185,7 +180,7 @@ const ticketMaintenanceService = {
     return rows[0];
   },
 
-  assign: async (id, assigned_engineer_id) => {
+  assignTicket: async (id, assigned_engineer_id) => {
     await verifyEngineer(assigned_engineer_id);
     await verifyStatus(id, "WaitingAssignment");
 
@@ -205,7 +200,7 @@ const ticketMaintenanceService = {
     return rows[0];
   },
 
-  start: async (id, user_id) => {
+  startTicket: async (id, user_id) => {
     if (!(await verifyUser(id, user_id))) {
       throw new ForbiddenError(
         "Anda tidak memiliki izin untuk memulai maintenance",
@@ -248,7 +243,7 @@ const ticketMaintenanceService = {
     }
   },
 
-  submit: async (id, user_id, data, file) => {
+  submitTicket: async (id, user_id, data, file) => {
     if (!(await verifyUser(id, user_id))) {
       throw new ForbiddenError(
         "Anda tidak memiliki izin untuk submit maintenance",
@@ -350,7 +345,7 @@ const ticketMaintenanceService = {
     }
   },
 
-  approve: async (id) => {
+  approveTicket: async (id) => {
     await verifyStatus(id, "WaitingApproval");
 
     const client = await pool.connect();

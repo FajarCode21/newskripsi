@@ -1,11 +1,11 @@
 import dataSensorService from "../services/dataSensorService.js";
-import predictProducer from "../producers/predictProducer.js";
+import predictProducer from "../rabbitmq-service/producers/predictProducer.js";
 
 const predictController = {
-  post: async (req, res, next) => {
+  postPredict: async (req, res, next) => {
     try {
       const data = req.body;
-      const results = await dataSensorService.create(data);
+      const results = await dataSensorService.createDataSensor(data);
       for (const sensor of results) {
         await predictProducer.sendPredictionJob(sensor);
       }

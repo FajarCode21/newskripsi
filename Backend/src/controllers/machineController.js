@@ -2,10 +2,10 @@ import machineService from "../services/machineService.js";
 import machineValidator from "../validators/machine/index.js";
 
 const machineController = {
-  getAll: async (req, res, next) => {
+  getAllMachines: async (req, res, next) => {
     try {
       const search = req.query.search || "";
-      const machines = await machineService.getAll(search);
+      const machines = await machineService.getAllMachines(search);
       res.status(200).json({
         status: "success",
         data: {
@@ -17,10 +17,10 @@ const machineController = {
     }
   },
 
-  getById: async (req, res, next) => {
+  getMachineById: async (req, res, next) => {
     try {
       const { id } = req.params;
-      const machine = await machineService.getById(id);
+      const machine = await machineService.getMachineById(id);
       res.status(200).json({
         status: "success",
         data: {
@@ -32,11 +32,11 @@ const machineController = {
     }
   },
 
-  create: async (req, res, next) => {
+  postMachine: async (req, res, next) => {
     try {
-      machineValidator.postPayload(req.body);
+      machineValidator.postMachinePayload(req.body);
       const { name, code, type, location, install_date } = req.body;
-      const machine = await machineService.create(
+      const machine = await machineService.createMachine(
         name,
         code,
         type,
@@ -54,12 +54,12 @@ const machineController = {
     }
   },
 
-  update: async (req, res, next) => {
+  putMachine: async (req, res, next) => {
     try {
       const { id } = req.params;
-      machineValidator.putPayload(req.body);
+      machineValidator.putMachinePayload(req.body);
       const { name, code, type, location, install_date } = req.body;
-      const machine = await machineService.update(
+      const machine = await machineService.updateMachine(
         id,
         name,
         code,
@@ -78,10 +78,10 @@ const machineController = {
     }
   },
 
-  deleteById: async (req, res, next) => {
+  deleteMachineById: async (req, res, next) => {
     try {
       const { id } = req.params;
-      await machineService.deleteById(id);
+      await machineService.deleteMachineById(id);
       res.status(200).json({
         status: "success",
         message: "Machine deleted successfully",

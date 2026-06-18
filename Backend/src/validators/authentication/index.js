@@ -9,15 +9,16 @@ const authenticationValidator = {
     }
   },
 
-  putPayload: (payload) => {
-    const { error } = authenticationSchema.put.validate(payload);
+  putAuthenticationPayload: (payload) => {
+    const { error } = authenticationSchema.putAuthentication.validate(payload);
     if (error) {
       throw new InvariantError(error.message);
     }
   },
 
-  deletePayload: (payload) => {
-    const { error } = authenticationSchema.delete.validate(payload);
+  deleteAuthenticationPayload: (payload) => {
+    const { error } =
+      authenticationSchema.deleteAuthentication.validate(payload);
     if (error) {
       throw new InvariantError(error.message);
     }

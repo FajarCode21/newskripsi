@@ -1,4 +1,4 @@
-import pool from "../utils/pool.js";
+import pool from "../config/pool.js";
 
 const createRecommendation = async (client, data) => {
   const { rows } = await client.query(
@@ -90,7 +90,7 @@ const createMaintenanceTicket = async (
 };
 
 const predictService = {
-  create: async (data) => {
+  createPrediction: async (data) => {
     const client = await pool.connect();
 
     try {

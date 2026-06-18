@@ -1,8 +1,8 @@
-import pool from "../utils/pool.js";
+import pool from "../config/pool.js";
 import NotFoundError from "../exceptions/NotFoundError.js";
 
 const machineService = {
-  getAll: async (search = "") => {
+  getAllMachines: async (search = "") => {
     const keyword = `%${search}%`;
 
     const { rows } = await pool.query(
@@ -28,7 +28,7 @@ const machineService = {
     return rows;
   },
 
-  getById: async (id) => {
+  getMachineById: async (id) => {
     const { rows } = await pool.query(
       "SELECT id, code, name, type, status, location, install_date FROM machines WHERE id = $1",
       [id],
@@ -39,7 +39,7 @@ const machineService = {
     return rows[0];
   },
 
-  create: async (code, name, type, location, install_date) => {
+  createMachine: async (code, name, type, location, install_date) => {
     const { rows } = await pool.query(
       "INSERT INTO machines (code, name, type, location, install_date) VALUES ($1, $2, $3, $4, $5) RETURNING id, code, name, type, location, install_date",
       [code, name, type, location, install_date],
@@ -47,7 +47,7 @@ const machineService = {
     return rows[0];
   },
 
-  update: async (id, code, name, type, location, install_date) => {
+  updateMachine: async (id, code, name, type, location, install_date) => {
     const { rows } = await pool.query(
       "UPDATE machines SET code = $1, name = $2, type = $3, location = $4, install_date = $5 WHERE id = $6 RETURNING id, code, name, type, location, install_date",
       [code, name, type, location, install_date, id],
@@ -55,7 +55,7 @@ const machineService = {
     return rows[0];
   },
 
-  deleteById: async (id) => {
+  deleteMachineById: async (id) => {
     const { rows } = await pool.query(
       "DELETE FROM machines WHERE id = $1 RETURNING id",
       [id],

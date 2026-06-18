@@ -6,11 +6,11 @@ const authenticationSchema = {
     password: joi.string().min(6).max(100).required(),
   }),
 
-  put: joi.object({
+  putAuthentication: joi.object({
     refreshToken: joi.string().required(),
   }),
 
-  delete: joi.object({
+  deleteAuthentication: joi.object({
     refreshToken: joi.string().required(),
   }),
 };

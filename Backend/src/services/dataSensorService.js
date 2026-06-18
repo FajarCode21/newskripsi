@@ -1,9 +1,9 @@
-import pool from "../utils/pool.js";
+import pool from "../config/pool.js";
 import InvariantError from "../exceptions/InvariantError.js";
 import NotFoundError from "../exceptions/NotFoundError.js";
 
 const dataSensorService = {
-  create: async (data) => {
+  createDataSensor: async (data) => {
     const isBatch = Array.isArray(data);
     const valuesArray = isBatch ? data : [data];
 

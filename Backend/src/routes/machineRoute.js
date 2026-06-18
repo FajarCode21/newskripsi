@@ -4,32 +4,36 @@ import authHandler from "../middlewares/authHandler.js";
 
 const router = express.Router();
 
-router.get("/", authHandler.authenticationHandler, machineController.getAll);
+router.get(
+  "/",
+  authHandler.authenticationHandler,
+  machineController.getAllMachines,
+);
 router.get(
   "/:id",
   authHandler.authenticationHandler,
-  machineController.getById,
+  machineController.getMachineById,
 );
 
 router.post(
   "/",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  machineController.create,
+  machineController.postMachine,
 );
 
 router.put(
   "/:id",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  machineController.update,
+  machineController.putMachine,
 );
 
 router.delete(
   "/:id",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  machineController.deleteById,
+  machineController.deleteMachineById,
 );
 
 export default router;

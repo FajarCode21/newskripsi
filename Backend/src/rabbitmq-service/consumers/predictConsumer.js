@@ -1,5 +1,5 @@
-import { getChannel } from "../brokers/rabbitmq.js";
-import predictService from "../services/predictService.js";
+import { getChannel } from "../config/rabbitmq.js";
+import predictService from "../../services/predictService.js";
 
 const predictConsumer = {
   start: async () => {
@@ -11,7 +11,7 @@ const predictConsumer = {
       try {
         const result = JSON.parse(msg.content.toString());
 
-        await predictService.create(result);
+        await predictService.createPrediction(result);
 
         channel.ack(msg);
       } catch (error) {

@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   postgres:
@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: admin123
       POSTGRES_DB: app_db
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -22,8 +22,30 @@ services:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin123
     ports:
-      - '5672:5672' # AMQP (backend connection)
-      - '15672:15672' # RabbitMQ Web UI
+      - "5672:5672"
+      - "15672:15672"
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: ollama-init
+    depends_on:
+      - ollama
+    restart: "no"
+    entrypoint: >
+      sh -c "
+      sleep 10 &&
+      OLLAMA_HOST=http://ollama:11434 ollama pull llama3
+      "
 
 volumes:
   pgdata:
+  ollama_data:

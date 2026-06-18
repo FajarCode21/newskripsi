@@ -2,15 +2,15 @@ import InvariantError from "../../exceptions/InvariantError.js";
 import userSchema from "./schema.js";
 
 const userValidator = {
-  postPayload: (payload) => {
-    const { error } = userSchema.post.validate(payload);
+  postUserPayload: (payload) => {
+    const { error } = userSchema.postUser.validate(payload);
     if (error) {
       throw new InvariantError(error.message);
     }
   },
 
-  putPayload: (payload) => {
-    const { error } = userSchema.put.validate(payload);
+  putUserPayload: (payload) => {
+    const { error } = userSchema.putUser.validate(payload);
     if (error) {
       throw new InvariantError(error.message);
     }

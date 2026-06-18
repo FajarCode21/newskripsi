@@ -1,4 +1,4 @@
-import pool from "../utils/pool.js";
+import pool from "../config/pool.js";
 import InvariantError from "../exceptions/InvariantError.js";
 import bcrypt from "bcrypt";
 
@@ -22,7 +22,7 @@ const authenticationService = {
     return user;
   },
 
-  create: async (id, token) => {
+  createAuthentication: async (id, token) => {
     await pool.query(
       "INSERT INTO authentications (owner, token) VALUES ($1, $2)",
       [id, token],
@@ -38,11 +38,11 @@ const authenticationService = {
     }
   },
 
-  delete: async (token) => {
+  deleteAuthentication: async (token) => {
     await pool.query("DELETE FROM authentications WHERE token = $1", [token]);
   },
 
-  deleteByUserId: async (userId) => {
+  deleteAuthenticationByUserId: async (userId) => {
     await pool.query("DELETE FROM authentications WHERE owner = $1", [userId]);
   },
 };

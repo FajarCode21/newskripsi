@@ -8,27 +8,27 @@ router.get(
   "/",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  userController.getAll,
+  userController.getAllUsers,
 );
 router.get(
   "/:id",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  userController.getByID,
+  userController.getUserById,
 );
 router.post(
   "/",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  userController.post,
+  userController.postUser,
 );
-router.put("/:id", authHandler.authenticationHandler, userController.put);
+router.put("/:id", authHandler.authenticationHandler, userController.putUser);
 
 router.delete(
   "/:id",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  userController.deleteById,
+  userController.deleteUserById,
 );
 
 export default router;

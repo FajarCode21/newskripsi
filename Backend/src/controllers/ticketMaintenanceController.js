@@ -3,11 +3,14 @@ import InvariantError from "../exceptions/InvariantError.js";
 import ticketMaintenanceValidator from "../validators/ticketMaintenance/index.js";
 
 const ticketMaintenanceController = {
-  getAll: async (req, res, next) => {
+  getAllTickets: async (req, res, next) => {
     try {
       const { id_user, role } = req.user;
 
-      const tickets = await ticketMaintenanceService.getAll(id_user, role);
+      const tickets = await ticketMaintenanceService.getAllTickets(
+        id_user,
+        role,
+      );
 
       res.status(200).json({
         status: "success",
@@ -20,12 +23,16 @@ const ticketMaintenanceController = {
     }
   },
 
-  getById: async (req, res, next) => {
+  getTicketById: async (req, res, next) => {
     try {
       const { id } = req.params;
       const { id: user_id, role } = req.user;
 
-      const ticket = await ticketMaintenanceService.getById(id, user_id, role);
+      const ticket = await ticketMaintenanceService.getTicketById(
+        id,
+        user_id,
+        role,
+      );
 
       res.status(200).json({
         status: "success",
@@ -38,13 +45,13 @@ const ticketMaintenanceController = {
     }
   },
 
-  assign: async (req, res, next) => {
+  patchAssignTicket: async (req, res, next) => {
     try {
       const { id } = req.params;
-      ticketMaintenanceValidator.assignPayload(req.body);
+      ticketMaintenanceValidator.patchAssignTicketPayload(req.body);
       const { assigned_engineer_id } = req.body;
 
-      const ticket = await ticketMaintenanceService.assign(
+      const ticket = await ticketMaintenanceService.assignTicket(
         id,
         assigned_engineer_id,
       );
@@ -60,12 +67,12 @@ const ticketMaintenanceController = {
     }
   },
 
-  start: async (req, res, next) => {
+  patchStartTicket: async (req, res, next) => {
     try {
       const { id } = req.params;
       const { id_user } = req.user;
 
-      const ticket = await ticketMaintenanceService.start(id, id_user);
+      const ticket = await ticketMaintenanceService.startTicket(id, id_user);
 
       res.status(200).json({
         status: "success",
@@ -78,17 +85,17 @@ const ticketMaintenanceController = {
     }
   },
 
-  submit: async (req, res, next) => {
+  patchSubmitTicket: async (req, res, next) => {
     try {
       const { id } = req.params;
       const { id_user } = req.user;
 
-      ticketMaintenanceValidator.submitPayload(req.body);
+      ticketMaintenanceValidator.patchSubmitTicketPayload(req.body);
 
       if (!req.file) {
         throw new InvariantError("Gambar wajib diunggah");
       }
-      const ticket = await ticketMaintenanceService.submit(
+      const ticket = await ticketMaintenanceService.submitTicket(
         id,
         id_user,
         req.body,
@@ -106,11 +113,11 @@ const ticketMaintenanceController = {
     }
   },
 
-  approve: async (req, res, next) => {
+  patchApproveTicket: async (req, res, next) => {
     try {
       const { id } = req.params;
 
-      const ticket = await ticketMaintenanceService.approve(id);
+      const ticket = await ticketMaintenanceService.approveTicket(id);
 
       res.status(200).json({
         status: "success",

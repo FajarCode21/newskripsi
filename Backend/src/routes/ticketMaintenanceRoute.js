@@ -8,27 +8,27 @@ const router = Router();
 router.get(
   "/",
   authHandler.authenticationHandler,
-  ticketMaintenanceController.getAll,
+  ticketMaintenanceController.getAllTickets,
 );
 
 router.get(
   "/:id",
   authHandler.authenticationHandler,
-  ticketMaintenanceController.getById,
+  ticketMaintenanceController.getTicketById,
 );
 
 router.patch(
   "/:id/assign",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  ticketMaintenanceController.assign,
+  ticketMaintenanceController.patchAssignTicket,
 );
 
 router.patch(
   "/:id/start",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Engineer"),
-  ticketMaintenanceController.start,
+  ticketMaintenanceController.patchStartTicket,
 );
 
 router.patch(
@@ -36,14 +36,14 @@ router.patch(
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Engineer"),
   uploadReport.single("image"),
-  ticketMaintenanceController.submit,
+  ticketMaintenanceController.patchSubmitTicket,
 );
 
 router.patch(
   "/:id/approve",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
-  ticketMaintenanceController.approve,
+  ticketMaintenanceController.patchApproveTicket,
 );
 
 export default router;

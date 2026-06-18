@@ -1,10 +1,10 @@
 import joi from "joi";
 
 const ticketMaintenanceSchema = {
-  assign: joi.object({
+  PatchAssignTicket: joi.object({
     assigned_engineer_id: joi.string().required(),
   }),
-  submit: joi.object({
+  PatchSubmitTicket: joi.object({
     description: joi.string().min(10).max(500).required(),
     action_taken: joi.string().min(10).max(500).required(),
     notes: joi.string().max(500).optional(),

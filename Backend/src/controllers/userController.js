@@ -2,12 +2,12 @@ import userValidator from "../validators/user/index.js";
 import userService from "../services/userService.js";
 
 const userController = {
-  post: async (req, res, next) => {
+  postUser: async (req, res, next) => {
     try {
-      await userValidator.postPayload(req.body);
+      await userValidator.postUserPayload(req.body);
       const { employee_id, name, email, password, role } = req.body;
 
-      const user = await userService.create(
+      const user = await userService.createUser(
         employee_id,
         name,
         email,
@@ -25,10 +25,10 @@ const userController = {
     }
   },
 
-  getByID: async (req, res, next) => {
+  getUserById: async (req, res, next) => {
     try {
       const { id } = req.params;
-      const user = await userService.getById(id);
+      const user = await userService.getUserById(id);
       res.status(200).json({
         status: "success",
         data: {
@@ -40,10 +40,10 @@ const userController = {
     }
   },
 
-  deleteById: async (req, res, next) => {
+  deleteUserById: async (req, res, next) => {
     try {
       const { id } = req.params;
-      await userService.deleteById(id);
+      await userService.deleteUserById(id);
       res.status(200).json({
         status: "success",
         message: "User berhasil dihapus",
@@ -53,10 +53,10 @@ const userController = {
     }
   },
 
-  getAll: async (req, res, next) => {
+  getAllUsers: async (req, res, next) => {
     try {
       const search = req.query.search || "";
-      const users = await userService.getAll(search);
+      const users = await userService.getAllUsers(search);
       res.status(200).json({
         status: "success",
         data: {
@@ -68,14 +68,14 @@ const userController = {
     }
   },
 
-  put: async (req, res, next) => {
+  putUser: async (req, res, next) => {
     try {
       const { id_user, role: role_user } = req.user;
       const { id } = req.params;
-      await userValidator.putPayload(req.body);
+      await userValidator.putUserPayload(req.body);
       const { name, password, role: updatedRole } = req.body;
 
-      await userService.update(
+      await userService.updateUser(
         id_user,
         id,
         name,

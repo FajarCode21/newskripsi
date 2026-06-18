@@ -1,7 +1,7 @@
 import joi from "joi";
 
 const machineSchema = {
-  post: joi.object({
+  postMachine: joi.object({
     name: joi.string().min(3).max(100).required(),
     code: joi.string().min(3).max(50).required(),
     type: joi.string().valid("L", "M", "H").required(),
@@ -9,7 +9,7 @@ const machineSchema = {
     install_date: joi.date().iso().required(),
   }),
 
-  put: joi.object({
+  putMachine: joi.object({
     name: joi.string().min(3).max(100).required(),
     code: joi.string().min(3).max(50).required(),
     type: joi.string().valid("L", "M", "H").required(),
