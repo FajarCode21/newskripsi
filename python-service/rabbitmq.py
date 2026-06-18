@@ -1,8 +1,10 @@
 import pika
 import json
 import os
+from dotenv import load_dotenv
 
-RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://admin:admin123@localhost:5672")
+load_dotenv(dotenv_path=".env")
+rabbitmq_url = os.getenv("RABBITMQ_URL")
 
 connection = None
 channel = None
