@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=".env")
-rabbitmq_url = os.getenv("RABBITMQ_URL")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL")
 
 connection = None
 channel = None
