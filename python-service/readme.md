@@ -91,24 +91,6 @@ xgboost==3.2.0
 
 ---
 
-## Struktur Project
-
-```text
-python-service/
-│
-├── model/
-│   └── model.pkl
-├── consumer/
-├── service/
-├── rabbitmq/
-├── main.py
-├── requirements.txt
-├── .env
-└── README.md
-```
-
----
-
 ## Cara Kerja
 
 1. Backend mengirimkan data prediksi ke RabbitMQ (`prediction_queue`).
