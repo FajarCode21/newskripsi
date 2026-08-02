@@ -46,4 +46,20 @@ router.patch(
   ticketMaintenanceController.patchApproveTicket,
 );
 
+// Fitur 4: admin menolak laporan
+router.patch(
+  "/:id/reject",
+  authHandler.authenticationHandler,
+  authHandler.authorizationHandler("Admin"),
+  ticketMaintenanceController.patchRejectTicket,
+);
+
+// Fitur 5: admin menghapus tiket yang belum ditugaskan
+router.delete(
+  "/:id",
+  authHandler.authenticationHandler,
+  authHandler.authorizationHandler("Admin"),
+  ticketMaintenanceController.deleteTicket,
+);
+
 export default router;

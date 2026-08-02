@@ -26,11 +26,11 @@ const ticketMaintenanceController = {
   getTicketById: async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { id: user_id, role } = req.user;
+      const { id_user, role } = req.user;
 
       const ticket = await ticketMaintenanceService.getTicketById(
         id,
-        user_id,
+        id_user,
         role,
       );
 
@@ -45,16 +45,18 @@ const ticketMaintenanceController = {
     }
   },
 
+  // Fitur 1 & 2: assign leader + (opsional) member, sekaligus catatan admin
   patchAssignTicket: async (req, res, next) => {
     try {
       const { id } = req.params;
       ticketMaintenanceValidator.patchAssignTicketPayload(req.body);
-      const { assigned_engineer_id } = req.body;
+      const { leader_id, member_ids, notes } = req.body;
 
-      const ticket = await ticketMaintenanceService.assignTicket(
-        id,
-        assigned_engineer_id,
-      );
+      const ticket = await ticketMaintenanceService.assignTicket(id, {
+        leader_id,
+        member_ids,
+        notes,
+      });
 
       res.status(200).json({
         status: "success",
@@ -124,6 +126,42 @@ const ticketMaintenanceController = {
         data: {
           ticket,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Fitur 4: admin menolak laporan
+  patchRejectTicket: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      ticketMaintenanceValidator.patchRejectTicketPayload(req.body);
+      const { notes } = req.body;
+
+      const ticket = await ticketMaintenanceService.rejectTicket(id, notes);
+
+      res.status(200).json({
+        status: "success",
+        data: {
+          ticket,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Fitur 5: admin menghapus tiket yang belum ditugaskan
+  deleteTicket: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      await ticketMaintenanceService.deleteTicket(id);
+
+      res.status(200).json({
+        status: "success",
+        message: "Tiket berhasil dihapus",
       });
     } catch (error) {
       next(error);

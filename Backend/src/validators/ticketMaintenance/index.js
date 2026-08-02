@@ -17,6 +17,14 @@ const ticketMaintenanceValidator = {
       throw new InvariantError(error.message);
     }
   },
+
+  patchRejectTicketPayload: (payload) => {
+    const { error } =
+      ticketMaintenanceSchema.PatchRejectTicket.validate(payload);
+    if (error) {
+      throw new InvariantError(error.message);
+    }
+  },
 };
 
 export default ticketMaintenanceValidator;

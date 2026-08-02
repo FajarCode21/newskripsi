@@ -67,7 +67,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["Active", "Onduty"],
+            "enum": ["Active", "Onduty", "Inactive"],
             "example": "Active"
           },
           "created_at": { "type": "string", "format": "date-time" }
@@ -82,7 +82,7 @@
           "type": { "type": "string", "example": "Lathe" },
           "status": {
             "type": "string",
-            "enum": ["Active", "Maintenance"],
+            "enum": ["Active", "Maintenance", "Inactive"],
             "example": "Active"
           },
           "location": { "type": "string", "example": "Lantai 1 - Area A" },
@@ -90,6 +90,19 @@
             "type": "string",
             "format": "date",
             "example": "2022-01-15"
+          }
+        }
+      },
+      "TicketAssignee": {
+        "type": "object",
+        "description": "Engineer yang ditugaskan pada tiket, dengan peran Leader atau Member",
+        "properties": {
+          "id": { "type": "integer", "example": 3 },
+          "name": { "type": "string", "example": "Jane Smith" },
+          "role": {
+            "type": "string",
+            "enum": ["Leader", "Member"],
+            "example": "Leader"
           }
         }
       },
@@ -104,25 +117,36 @@
               "Assigned",
               "InProgress",
               "WaitingApproval",
-              "Done"
+              "Done",
+              "Rejected"
             ],
             "example": "WaitingAssignment"
           },
           "machine_name": { "type": "string", "example": "Mesin Bubut A1" },
           "type": { "type": "string", "example": "Tool Wear Failure" },
-          "assigned_engineer_id": {
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Catatan admin (sebelum assign) atau alasan reject laporan",
+            "example": "Prioritaskan pengecekan bearing juga"
+          },
+          "leader_id": {
             "type": "integer",
             "nullable": true,
             "example": 2
           },
-          "engineer_name": {
+          "leader_name": {
             "type": "string",
             "nullable": true,
             "example": "Jane Smith"
           },
           "description": { "type": "string", "nullable": true },
           "action_taken": { "type": "string", "nullable": true },
-          "notes": { "type": "string", "nullable": true },
+          "report_notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Catatan tambahan dari engineer pada laporan"
+          },
           "duration_hours": { "type": "number", "nullable": true },
           "image_url": {
             "type": "string",
@@ -169,7 +193,23 @@
         "type": "object",
         "properties": {
           "id": { "type": "integer", "example": 1 },
-          "status": { "type": "string", "example": "Assigned" },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WaitingAssignment",
+              "Assigned",
+              "InProgress",
+              "WaitingApproval",
+              "Done",
+              "Rejected"
+            ],
+            "example": "Assigned"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Catatan admin (sebelum assign) atau alasan reject laporan"
+          },
           "machine_name": { "type": "string", "example": "Mesin Bubut A1" },
           "rul_hours": { "type": "number", "example": 120.5 },
           "rul_days": { "type": "number", "example": 5.02 },
@@ -181,8 +221,12 @@
           },
           "confidence": { "type": "number", "example": 0.92 },
           "type": { "type": "string", "example": "Tool Wear Failure" },
-          "assigned_engineer_id": { "type": "integer", "nullable": true },
-          "engineer_name": { "type": "string", "nullable": true },
+          "engineers": {
+            "type": "array",
+            "nullable": true,
+            "description": "Daftar engineer yang ditugaskan (1 Leader + 0 atau lebih Member)",
+            "items": { "$ref": "#/components/schemas/TicketAssignee" }
+          },
           "created_at": { "type": "string", "format": "date-time" }
         }
       }
@@ -1031,7 +1075,7 @@
       "get": {
         "tags": ["Ticket Maintenance"],
         "summary": "Ambil semua tiket",
-        "description": "Admin mendapat semua tiket. Engineer hanya mendapat tiket yang ditugaskan kepadanya.",
+        "description": "Admin mendapat semua tiket. Engineer hanya mendapat tiket di mana dia berperan sebagai **Leader** (tiket tidak muncul di daftar Member).",
         "security": [{ "BearerAuth": [] }],
         "responses": {
           "200": {
@@ -1064,7 +1108,7 @@
       "get": {
         "tags": ["Ticket Maintenance"],
         "summary": "Ambil tiket berdasarkan ID",
-        "description": "Mengambil detail tiket berdasarkan ID. Admin bisa melihat semua tiket, Engineer hanya bisa melihat tiket miliknya.",
+        "description": "Mengambil detail tiket berdasarkan ID, termasuk daftar engineer (Leader & Member) yang ditugaskan. Admin bisa melihat semua tiket, Engineer hanya bisa melihat tiket di mana dia terdaftar sebagai Leader atau Member.",
         "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
@@ -1101,13 +1145,62 @@
           "403": { "$ref": "#/components/responses/Forbidden" },
           "404": { "$ref": "#/components/responses/NotFound" }
         }
+      },
+      "delete": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Hapus tiket",
+        "description": "Admin menghapus tiket yang belum ditugaskan / tidak diperlukan lagi. Hanya diizinkan ketika status tiket masih `WaitingAssignment`.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID tiket"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tiket berhasil dihapus",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": {
+                      "type": "string",
+                      "example": "Tiket berhasil dihapus"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status tiket bukan WaitingAssignment sehingga tidak boleh dihapus",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "status": "fail",
+                  "message": "Status tiket harus WaitingAssignment"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
       }
     },
     "/api/ticket-maintenance/{id}/assign": {
       "patch": {
         "tags": ["Ticket Maintenance"],
-        "summary": "Tugaskan engineer ke tiket",
-        "description": "Admin menugaskan seorang engineer ke tiket. Status tiket harus `WaitingAssignment`, akan berubah menjadi `Assigned`.",
+        "summary": "Tugaskan leader & member engineer ke tiket",
+        "description": "Admin menugaskan 1 orang engineer sebagai Leader dan (opsional) beberapa engineer lain sebagai Member, sekaligus bisa menambahkan catatan sebelum pekerjaan dimulai. Status tiket harus `WaitingAssignment`, akan berubah menjadi `Assigned`. Hanya Leader yang dapat memulai (`/start`) dan submit (`/submit`) tiket; tiket hanya akan muncul di daftar tiket milik Leader.",
         "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
@@ -1124,12 +1217,23 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["assigned_engineer_id"],
+                "required": ["leader_id"],
                 "properties": {
-                  "assigned_engineer_id": {
-                    "type": "integer",
-                    "description": "ID pengguna dengan role Engineer",
-                    "example": 3
+                  "leader_id": {
+                    "type": "string",
+                    "description": "ID pengguna dengan role Engineer yang akan menjadi Leader tiket",
+                    "example": "3"
+                  },
+                  "member_ids": {
+                    "type": "array",
+                    "description": "Daftar ID pengguna dengan role Engineer sebagai Member (opsional)",
+                    "items": { "type": "string" },
+                    "example": ["4", "5"]
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Catatan admin untuk engineer sebelum pekerjaan dimulai (opsional)",
+                    "example": "Prioritaskan pengecekan bearing juga"
                   }
                 }
               }
@@ -1157,7 +1261,7 @@
             }
           },
           "400": {
-            "description": "Status tiket bukan WaitingAssignment atau engineer tidak ditemukan",
+            "description": "Data tidak valid, status tiket bukan WaitingAssignment, atau engineer tidak ditemukan",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -1173,7 +1277,7 @@
       "patch": {
         "tags": ["Ticket Maintenance"],
         "summary": "Mulai pengerjaan tiket",
-        "description": "Engineer memulai pengerjaan tiket yang telah ditugaskan kepadanya. Status tiket harus `Assigned`, akan berubah menjadi `InProgress`. Status engineer menjadi `Onduty` dan status mesin menjadi `Maintenance`.",
+        "description": "Leader tiket memulai pengerjaan tiket yang telah ditugaskan kepadanya. Status tiket harus `Assigned`, akan berubah menjadi `InProgress`. Status seluruh engineer yang ditugaskan (Leader & Member) menjadi `Onduty` dan status mesin menjadi `Maintenance`.",
         "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
@@ -1206,7 +1310,7 @@
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "403": {
-            "description": "Engineer bukan pemilik tiket ini atau status tiket tidak sesuai",
+            "description": "Engineer bukan Leader tiket ini atau status tiket tidak sesuai",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -1220,7 +1324,7 @@
       "patch": {
         "tags": ["Ticket Maintenance"],
         "summary": "Submit laporan penyelesaian",
-        "description": "Engineer mengirimkan laporan penyelesaian beserta foto bukti. Status tiket harus `InProgress`, akan berubah menjadi `WaitingApproval`. Request menggunakan `multipart/form-data`.",
+        "description": "Leader tiket mengirimkan laporan penyelesaian beserta foto bukti. Status tiket harus `InProgress` (submit pertama kali) atau `Rejected` (submit ulang setelah laporan ditolak Admin, laporan lama akan diperbarui beserta foto), akan berubah menjadi `WaitingApproval`. Request menggunakan `multipart/form-data`.",
         "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
@@ -1256,7 +1360,7 @@
                   },
                   "notes": {
                     "type": "string",
-                    "description": "Catatan tambahan (opsional)",
+                    "description": "Catatan tambahan dari engineer (opsional)",
                     "example": "Disarankan pengecekan rutin setiap 200 jam"
                   },
                   "duration_hours": {
@@ -1267,7 +1371,7 @@
                   "image": {
                     "type": "string",
                     "format": "binary",
-                    "description": "Foto bukti pekerjaan (wajib). Akan dikonversi ke format WebP."
+                    "description": "Foto bukti pekerjaan (wajib, termasuk saat submit ulang). Akan dikonversi ke format WebP."
                   }
                 }
               }
@@ -1307,7 +1411,14 @@
             }
           },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "403": {
+            "description": "Engineer bukan Leader tiket ini atau status tiket tidak sesuai (harus InProgress atau Rejected)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
         }
       }
     },
@@ -1315,7 +1426,7 @@
       "patch": {
         "tags": ["Ticket Maintenance"],
         "summary": "Setujui penyelesaian tiket",
-        "description": "Admin menyetujui laporan penyelesaian. Status tiket harus `WaitingApproval`, akan berubah menjadi `Done`. Status engineer kembali menjadi `Active` dan status mesin kembali menjadi `Active`.",
+        "description": "Admin menyetujui laporan penyelesaian. Status tiket harus `WaitingApproval`, akan berubah menjadi `Done`. Status seluruh engineer yang ditugaskan kembali menjadi `Active` (jika tidak ada tiket InProgress lain) dan status mesin kembali menjadi `Active`.",
         "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
@@ -1348,6 +1459,72 @@
           },
           "400": {
             "description": "Status tiket bukan WaitingApproval",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/ticket-maintenance/{id}/reject": {
+      "patch": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Tolak laporan penyelesaian",
+        "description": "Admin menolak laporan penyelesaian yang belum sesuai, disertai alasan. Status tiket harus `WaitingApproval`, akan berubah menjadi `Rejected`. Leader tiket kemudian dapat memperbarui dan submit ulang laporan melalui endpoint `/submit`.",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID tiket"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["notes"],
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "description": "Alasan penolakan laporan",
+                    "example": "Foto bukti kurang jelas, mohon diperbaharui"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Laporan berhasil ditolak",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Alasan (notes) tidak diisi atau status tiket bukan WaitingApproval",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }

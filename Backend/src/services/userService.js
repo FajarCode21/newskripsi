@@ -32,8 +32,11 @@ const userService = {
 
       return rows[0];
     } catch (error) {
+      console.log(error);
       if (error.code === "23505") {
-        throw new InvariantError("Email sudah digunakan");
+        throw new InvariantError(
+          "Email sudah atau employee_id sudah digunakan",
+        );
       }
 
       throw error;

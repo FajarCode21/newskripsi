@@ -5,6 +5,7 @@ export const up = (pgm) => {
     "InProgress",
     "WaitingApproval",
     "Done",
+    "Rejected",
   ]);
 
   pgm.createTable("maintenance_tickets", {
@@ -21,15 +22,14 @@ export const up = (pgm) => {
       references: "failure_statistics",
       onDelete: "cascade",
     },
-    assigned_engineer_id: {
-      type: "int",
-      references: "users",
-      onDelete: "set null",
-    },
     status: {
       type: "status_maintenance_enum",
       notNull: true,
       default: "WaitingAssignment",
+    },
+    notes: {
+      type: "text",
+      default: null,
     },
     created_at: {
       type: "timestamp",
@@ -42,7 +42,6 @@ export const up = (pgm) => {
   });
 
   pgm.createIndex("maintenance_tickets", ["machine_id"]);
-  pgm.createIndex("maintenance_tickets", ["assigned_engineer_id"]);
 };
 
 export const down = (pgm) => {

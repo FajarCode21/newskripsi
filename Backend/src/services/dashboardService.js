@@ -96,15 +96,18 @@ const dashboardService = {
             mt.status,
             m.name AS machine_name,
             fs.type,
-            u.name AS engineer_name,
+            leader.name AS engineer_name,
             mt.created_at
           FROM maintenance_tickets mt
           JOIN machines m
             ON mt.machine_id = m.id
           JOIN failure_statistics fs
             ON mt.failure_statistic_id = fs.id
-          LEFT JOIN users u
-            ON mt.assigned_engineer_id = u.id
+          LEFT JOIN maintenance_ticket_assignments mta_leader
+            ON mta_leader.maintenance_ticket_id = mt.id
+            AND mta_leader.role = 'Leader'
+          LEFT JOIN users leader
+            ON mta_leader.user_id = leader.id
           ORDER BY mt.created_at DESC
           LIMIT 10
         `),

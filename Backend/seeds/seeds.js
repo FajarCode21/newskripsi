@@ -1,13 +1,15 @@
-import machineSeed from './machineSeed.js';
-import userSeed from './userSeed.js';
+import machineSeed from "./machineSeed.js";
+import userSeed from "./userSeed.js";
+import ticketSeed from "./ticketSeed.js";
 
 const seed = async () => {
   try {
-    console.log('Seeding...');
+    console.log("Seeding...");
     await machineSeed();
     await userSeed();
+    await ticketSeed();
   } catch (error) {
-    console.error('Error seeding', error);
+    console.error("Error seeding", error);
   }
 };
 

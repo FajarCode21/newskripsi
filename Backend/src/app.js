@@ -1,11 +1,11 @@
+import "dotenv/config";
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.json" with { type: "json" };
-import "dotenv/config";
-
 import { connectRabbitMQ } from "./rabbitmq-service/config/rabbitmq.js";
 import predictionConsumer from "./rabbitmq-service/consumers/predictConsumer.js";
 import errorHandler from "./middlewares/errorHandler.js";
@@ -18,7 +18,14 @@ const app = express();
 await connectRabbitMQ();
 await predictionConsumer.start();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Domain frontend Vite Anda (WAJIB spesifik, jangan '*')
+    credentials: true, // Wajib true jika frontend mengirim cookie/session
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(cookieParser());
 app.use(
   express.json({
