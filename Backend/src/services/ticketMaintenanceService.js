@@ -45,6 +45,12 @@ const syncAllAssignedEngineersStatus = async (client, ticket_id) => {
   await Promise.all(rows.map((row) => syncEngineerStatus(client, row.user_id)));
 };
 
+// Sync status sekumpulan engineer sekaligus (dedup) - dipakai saat manageAssignments
+const syncEngineersStatus = async (client, user_ids) => {
+  const uniqueIds = [...new Set(user_ids)];
+  await Promise.all(uniqueIds.map((uid) => syncEngineerStatus(client, uid)));
+};
+
 const syncMachineStatus = async (client, machine_id) => {
   const { rows } = await client.query(
     `
@@ -66,6 +72,28 @@ const syncMachineStatus = async (client, machine_id) => {
     `,
     [status, machine_id],
   );
+};
+
+// Ambil semua user_id yang sedang assigned di tiket ini (leader + member)
+const getAssignedUserIds = async (client, ticket_id) => {
+  const { rows } = await client.query(
+    `SELECT user_id FROM maintenance_ticket_assignments WHERE maintenance_ticket_id = $1`,
+    [ticket_id],
+  );
+  return rows.map((r) => r.user_id);
+};
+
+const getLeaderRow = async (client, ticket_id) => {
+  const { rows } = await client.query(
+    `
+    SELECT id, user_id
+    FROM maintenance_ticket_assignments
+    WHERE maintenance_ticket_id = $1
+    AND role = 'Leader'
+    `,
+    [ticket_id],
+  );
+  return rows[0] ?? null;
 };
 
 // Cek apakah user adalah Leader pada tiket ini (hanya leader yang boleh start/submit)
@@ -154,28 +182,14 @@ const ticketMaintenanceService = {
       SELECT
         mt.id,
         mt.status,
-        mt.notes,
         m.name AS machine_name,
         fs.type,
-        leader.id AS leader_id,
-        leader.name AS leader_name,
-        mReport.description,
-        mReport.action_taken,
-        mReport.notes AS report_notes,
-        mReport.duration_hours,
-        ri.image_url,
+        mr.priority,
         mt.created_at
       FROM maintenance_tickets mt
       JOIN machines m ON mt.machine_id = m.id
       JOIN failure_statistics fs ON mt.failure_statistic_id = fs.id
-      LEFT JOIN maintenance_ticket_assignments mta_leader
-        ON mta_leader.maintenance_ticket_id = mt.id
-        AND mta_leader.role = 'Leader'
-      LEFT JOIN users leader ON mta_leader.user_id = leader.id
-      LEFT JOIN maintenance_reports mReport
-        ON mt.id = mReport.maintenance_ticket_id
-      LEFT JOIN report_images ri
-        ON mReport.id = ri.report_id
+      JOIN maintenance_recommendations mr ON fs.maintenance_recommendation_id = mr.id
     `;
 
     const params = [];
@@ -213,6 +227,7 @@ const ticketMaintenanceService = {
         mt.id,
         mt.status,
         mt.notes,
+        m.id AS machine_id,
         m.name AS machine_name,
         mr.rul_hours,
         mr.rul_days,
@@ -278,6 +293,8 @@ const ticketMaintenanceService = {
         [notes ?? null, id],
       );
 
+      const ticket = rows[0];
+
       // bersihkan assignment lama (jaga-jaga kalau re-assign)
       await client.query(
         `DELETE FROM maintenance_ticket_assignments WHERE maintenance_ticket_id = $1`,
@@ -304,9 +321,13 @@ const ticketMaintenanceService = {
         );
       }
 
+      // jaga-jaga: sync status engineer yang baru diassign
+      // (baru benar-benar berefek kalau mereka sudah punya tiket InProgress lain)
+      await syncEngineersStatus(client, [leader_id, ...uniqueMemberIds]);
+
       await client.query("COMMIT");
 
-      return rows[0];
+      return ticket;
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -315,7 +336,8 @@ const ticketMaintenanceService = {
     }
   },
 
-  startTicket: async (id, user_id) => {
+  // Fitur 3: leader mulai maintenance, sekaligus bisa tambah member baru dalam 1 request
+  startTicket: async (id, user_id, member_ids = []) => {
     if (!(await verifyLeader(id, user_id))) {
       throw new ForbiddenError(
         "Hanya leader tiket ini yang dapat memulai maintenance",
@@ -324,10 +346,34 @@ const ticketMaintenanceService = {
 
     await verifyStatus(id, "Assigned");
 
+    // jaga-jaga: null atau bukan array dianggap kosong
+    const safeMemberIds = Array.isArray(member_ids) ? member_ids : [];
+
     const client = await pool.connect();
 
     try {
       await client.query("BEGIN");
+
+      const existingUserIds = await getAssignedUserIds(client, id);
+
+      const newMemberIds = [...new Set(safeMemberIds)].filter(
+        (memberId) => !existingUserIds.includes(memberId),
+      );
+
+      for (const memberId of newMemberIds) {
+        await verifyEngineer(memberId);
+      }
+
+      for (const memberId of newMemberIds) {
+        await client.query(
+          `
+          INSERT INTO maintenance_ticket_assignments
+            (maintenance_ticket_id, user_id, role)
+          VALUES ($1, $2, 'Member')
+          `,
+          [id, memberId],
+        );
+      }
 
       const { rows } = await client.query(
         `
@@ -348,7 +394,116 @@ const ticketMaintenanceService = {
 
       await client.query("COMMIT");
 
-      return ticket;
+      return { ...ticket, added_member_ids: newMemberIds };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
+  // Fitur baru: admin ubah/tambah/hapus leader & member saat tiket InProgress
+  // (misal leader/member sedang sakit dan perlu digantikan)
+  manageAssignments: async (
+    id,
+    { leader_id, add_member_ids = [], remove_member_ids = [] },
+  ) => {
+    await verifyStatus(id, "InProgress");
+
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      const leaderRow = await getLeaderRow(client, id);
+      if (!leaderRow) {
+        throw new NotFoundError("Leader tiket ini tidak ditemukan");
+      }
+
+      const affectedUserIds = new Set();
+
+      const { rows: ticketRows } = await client.query(
+        `SELECT machine_id FROM maintenance_tickets WHERE id = $1`,
+        [id],
+      );
+      const machine_id = ticketRows[0]?.machine_id;
+
+      // --- Ganti leader ---
+      if (leader_id && leader_id !== leaderRow.user_id) {
+        await verifyEngineer(leader_id);
+
+        affectedUserIds.add(leaderRow.user_id); // leader lama, kemungkinan balik jadi Active
+        affectedUserIds.add(leader_id); // leader baru, jadi Onduty
+
+        // kalau leader baru kebetulan sedang jadi member di tiket ini, hapus dulu row membernya
+        await client.query(
+          `
+          DELETE FROM maintenance_ticket_assignments
+          WHERE maintenance_ticket_id = $1 AND user_id = $2 AND role = 'Member'
+          `,
+          [id, leader_id],
+        );
+
+        // ganti user_id di row Leader
+        await client.query(
+          `
+          UPDATE maintenance_ticket_assignments
+          SET user_id = $1
+          WHERE id = $2
+          `,
+          [leader_id, leaderRow.id],
+        );
+      }
+
+      // --- Hapus member ---
+      const uniqueRemoveIds = [...new Set(remove_member_ids)];
+      if (uniqueRemoveIds.length) {
+        const { rows: removed } = await client.query(
+          `
+          DELETE FROM maintenance_ticket_assignments
+          WHERE maintenance_ticket_id = $1
+          AND user_id = ANY($2::int[])
+          AND role = 'Member'
+          RETURNING user_id
+          `,
+          [id, uniqueRemoveIds],
+        );
+        removed.forEach((r) => affectedUserIds.add(r.user_id));
+      }
+
+      // --- Tambah member ---
+      const currentUserIds = await getAssignedUserIds(client, id);
+      const effectiveLeaderId = leader_id ?? leaderRow.user_id;
+      const uniqueAddIds = [...new Set(add_member_ids)].filter(
+        (uid) => !currentUserIds.includes(uid) && uid !== effectiveLeaderId,
+      );
+
+      for (const memberId of uniqueAddIds) {
+        await verifyEngineer(memberId);
+      }
+
+      for (const memberId of uniqueAddIds) {
+        await client.query(
+          `
+          INSERT INTO maintenance_ticket_assignments
+            (maintenance_ticket_id, user_id, role)
+          VALUES ($1, $2, 'Member')
+          `,
+          [id, memberId],
+        );
+        affectedUserIds.add(memberId);
+      }
+
+      // --- Sync status engineer yang terdampak & mesin ---
+      await syncEngineersStatus(client, [...affectedUserIds]);
+      if (machine_id) {
+        await syncMachineStatus(client, machine_id);
+      }
+
+      await client.query("COMMIT");
+
+      return { ticket_id: id, affected_user_ids: [...affectedUserIds] };
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -565,6 +720,53 @@ const ticketMaintenanceService = {
 
     if (!rows.length) {
       throw new NotFoundError("Tiket tidak ditemukan");
+    }
+
+    return rows[0];
+  },
+
+  // Endpoint khusus: detail laporan maintenance (report + seluruh foto)
+  // Endpoint khusus: detail laporan maintenance (report + seluruh foto + engineer pengerja)
+  getTicketReport: async (id, user_id, role) => {
+    if (role !== "Admin" && !(await verifyAssigned(id, user_id))) {
+      throw new ForbiddenError(
+        "Anda tidak memiliki izin untuk melihat laporan tiket ini",
+      );
+    }
+
+    const { rows } = await pool.query(
+      `
+      SELECT
+        mr.id,
+        mr.maintenance_ticket_id,
+        mr.description,
+        mr.action_taken,
+        mr.notes,
+        mr.duration_hours,
+        mr.created_at,
+        mr.updated_at,
+        (
+          SELECT json_agg(ri.image_url ORDER BY ri.id)
+          FROM report_images ri
+          WHERE ri.report_id = mr.id
+        ) AS image_urls,
+        (
+          SELECT json_agg(
+            json_build_object('id', u.id, 'name', u.name, 'role', mta.role)
+            ORDER BY mta.role
+          )
+          FROM maintenance_ticket_assignments mta
+          JOIN users u ON mta.user_id = u.id
+          WHERE mta.maintenance_ticket_id = mr.maintenance_ticket_id
+        ) AS engineers
+      FROM maintenance_reports mr
+      WHERE mr.maintenance_ticket_id = $1
+      `,
+      [id],
+    );
+
+    if (!rows.length) {
+      throw new NotFoundError("Laporan untuk tiket ini belum tersedia");
     }
 
     return rows[0];

@@ -43,7 +43,7 @@ services:
     entrypoint: >
       sh -c "
       sleep 10 &&
-      OLLAMA_HOST=http://ollama:11434 ollama pull llama3
+      OLLAMA_HOST=http://ollama:11434 ollama pull llama3.1
       "
 
 volumes:

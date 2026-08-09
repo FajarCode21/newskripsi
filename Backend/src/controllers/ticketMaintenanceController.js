@@ -69,18 +69,50 @@ const ticketMaintenanceController = {
     }
   },
 
+  // Fitur 3 + fitur tambah member digabung: leader mulai maintenance,
+  // sekaligus bisa tambah member baru (opsional) dalam 1 request
   patchStartTicket: async (req, res, next) => {
     try {
       const { id } = req.params;
       const { id_user } = req.user;
 
-      const ticket = await ticketMaintenanceService.startTicket(id, id_user);
+      ticketMaintenanceValidator.patchStartTicketPayload(req.body);
+      const { member_ids = [] } = req.body ?? {};
+
+      const ticket = await ticketMaintenanceService.startTicket(
+        id,
+        id_user,
+        member_ids ?? [],
+      );
 
       res.status(200).json({
         status: "success",
         data: {
           ticket,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Fitur baru: admin ubah/tambah/hapus leader & member saat tiket InProgress
+  patchManageAssignments: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      ticketMaintenanceValidator.patchManageAssignmentsPayload(req.body);
+      const { leader_id, add_member_ids, remove_member_ids } = req.body;
+
+      const result = await ticketMaintenanceService.manageAssignments(id, {
+        leader_id,
+        add_member_ids,
+        remove_member_ids,
+      });
+
+      res.status(200).json({
+        status: "success",
+        data: result,
       });
     } catch (error) {
       next(error);
@@ -162,6 +194,29 @@ const ticketMaintenanceController = {
       res.status(200).json({
         status: "success",
         message: "Tiket berhasil dihapus",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Endpoint khusus: detail laporan maintenance (report + seluruh foto)
+  getTicketReport: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { id_user, role } = req.user;
+
+      const report = await ticketMaintenanceService.getTicketReport(
+        id,
+        id_user,
+        role,
+      );
+
+      res.status(200).json({
+        status: "success",
+        data: {
+          report,
+        },
       });
     } catch (error) {
       next(error);

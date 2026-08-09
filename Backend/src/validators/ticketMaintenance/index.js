@@ -2,17 +2,37 @@ import InvariantError from "../../exceptions/InvariantError.js";
 import ticketMaintenanceSchema from "./schema.js";
 
 const ticketMaintenanceValidator = {
-  patchSubmitTicketPayload: (payload) => {
+  patchAssignTicketPayload: (payload) => {
     const { error } =
-      ticketMaintenanceSchema.PatchSubmitTicket.validate(payload);
+      ticketMaintenanceSchema.PatchAssignTicket.validate(payload);
+
     if (error) {
       throw new InvariantError(error.message);
     }
   },
 
-  patchAssignTicketPayload: (payload) => {
+  patchStartTicketPayload: (payload) => {
     const { error } =
-      ticketMaintenanceSchema.PatchAssignTicket.validate(payload);
+      ticketMaintenanceSchema.PatchStartTicket.validate(payload);
+
+    if (error) {
+      throw new InvariantError(error.message);
+    }
+  },
+
+  patchManageAssignmentsPayload: (payload) => {
+    const { error } =
+      ticketMaintenanceSchema.PatchManageAssignments.validate(payload);
+
+    if (error) {
+      throw new InvariantError(error.message);
+    }
+  },
+
+  patchSubmitTicketPayload: (payload) => {
+    const { error } =
+      ticketMaintenanceSchema.PatchSubmitTicket.validate(payload);
+
     if (error) {
       throw new InvariantError(error.message);
     }
@@ -21,6 +41,7 @@ const ticketMaintenanceValidator = {
   patchRejectTicketPayload: (payload) => {
     const { error } =
       ticketMaintenanceSchema.PatchRejectTicket.validate(payload);
+
     if (error) {
       throw new InvariantError(error.message);
     }

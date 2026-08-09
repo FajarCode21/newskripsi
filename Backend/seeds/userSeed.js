@@ -16,18 +16,18 @@ const userSeed = async () => {
       'Admin'
     ),
     (
-      'ENG001',
-      'Fajar',
-      'fajar123@gmail.com',
-      '$2y$12$0c3HLB/HejoL/dqrgCrK/.2k5hCVAFY69J5aHvp5gMScAHZHDgdhO', 
-      'Engineer'
+     'ENG001',
+     'Engineer User',
+     'engineer1@gmail.com',
+     '$2a$12$tFs7xFXnTWL1XoAU/1ORkO3BteofbU.jC6qfjCWW7HTCqRJKKhwAW', 
+     'Engineer'
     ),
     (
-      'ENG002',
-      'Rizky',
-      'rizky123@gmail.com',
-      '$2y$12$mAQOyFgKRI.EEef.iidozuYe1QXeFZzgeT1ZLkBTMwyZRx0oIlwhi', 
-      'Engineer'
+     'ENG002',
+     'Engineer User 2',
+     'engineer2@gmail.com',
+     '$2a$12$tFs7xFXnTWL1XoAU/1ORkO3BteofbU.jC6qfjCWW7HTCqRJKKhwAW', 
+     'Engineer'
     )
     ON CONFLICT (email) DO NOTHING;
   `;

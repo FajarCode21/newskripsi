@@ -17,14 +17,30 @@
       "name": "Authentication",
       "description": "Login, refresh token, dan logout"
     },
-    { "name": "Users", "description": "Manajemen data pengguna" },
-    { "name": "Machines", "description": "Manajemen data mesin" },
-    { "name": "Predict", "description": "Kirim data sensor untuk prediksi" },
+    {
+      "name": "Users",
+      "description": "Manajemen data pengguna"
+    },
+    {
+      "name": "Machines",
+      "description": "Manajemen data mesin"
+    },
+    {
+      "name": "Predict",
+      "description": "Kirim data sensor untuk prediksi"
+    },
     {
       "name": "Ticket Maintenance",
       "description": "Manajemen tiket pemeliharaan"
     },
-    { "name": "Dashboard", "description": "Data ringkasan dashboard" }
+    {
+      "name": "Chatbot",
+      "description": "Tanya jawab seputar data mesin, tiket, dan pemeliharaan menggunakan AI"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Data ringkasan dashboard"
+    }
   ],
   "components": {
     "securitySchemes": {
@@ -39,22 +55,40 @@
       "SuccessResponse": {
         "type": "object",
         "properties": {
-          "status": { "type": "string", "example": "success" }
+          "status": {
+            "type": "string",
+            "example": "success"
+          }
         }
       },
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "status": { "type": "string", "example": "fail" },
-          "message": { "type": "string", "example": "Pesan error" }
+          "status": {
+            "type": "string",
+            "example": "fail"
+          },
+          "message": {
+            "type": "string",
+            "example": "Pesan error"
+          }
         }
       },
       "UserData": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer", "example": 1 },
-          "employee_id": { "type": "string", "example": "EMP-001" },
-          "name": { "type": "string", "example": "John Doe" },
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "employee_id": {
+            "type": "string",
+            "example": "EMP-001"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
           "email": {
             "type": "string",
             "format": "email",
@@ -70,22 +104,40 @@
             "enum": ["Active", "Onduty", "Inactive"],
             "example": "Active"
           },
-          "created_at": { "type": "string", "format": "date-time" }
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "MachineData": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer", "example": 1 },
-          "code": { "type": "string", "example": "MCH-001" },
-          "name": { "type": "string", "example": "Mesin Bubut A1" },
-          "type": { "type": "string", "example": "Lathe" },
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "code": {
+            "type": "string",
+            "example": "MCH-001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Mesin Bubut A1"
+          },
+          "type": {
+            "type": "string",
+            "example": "Lathe"
+          },
           "status": {
             "type": "string",
             "enum": ["Active", "Maintenance", "Inactive"],
             "example": "Active"
           },
-          "location": { "type": "string", "example": "Lantai 1 - Area A" },
+          "location": {
+            "type": "string",
+            "example": "Lantai 1 - Area A"
+          },
           "install_date": {
             "type": "string",
             "format": "date",
@@ -97,8 +149,14 @@
         "type": "object",
         "description": "Engineer yang ditugaskan pada tiket, dengan peran Leader atau Member",
         "properties": {
-          "id": { "type": "integer", "example": 3 },
-          "name": { "type": "string", "example": "Jane Smith" },
+          "id": {
+            "type": "integer",
+            "example": 3
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
           "role": {
             "type": "string",
             "enum": ["Leader", "Member"],
@@ -108,8 +166,20 @@
       },
       "TicketData": {
         "type": "object",
+        "description": "Baris mentah tabel maintenance_tickets (hasil RETURNING * pada operasi assign/submit/reject).",
         "properties": {
-          "id": { "type": "integer", "example": 1 },
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "machine_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "failure_statistic_id": {
+            "type": "integer",
+            "example": 4
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -120,40 +190,22 @@
               "Done",
               "Rejected"
             ],
-            "example": "WaitingAssignment"
+            "example": "Assigned"
           },
-          "machine_name": { "type": "string", "example": "Mesin Bubut A1" },
-          "type": { "type": "string", "example": "Tool Wear Failure" },
           "notes": {
             "type": "string",
             "nullable": true,
             "description": "Catatan admin (sebelum assign) atau alasan reject laporan",
             "example": "Prioritaskan pengecekan bearing juga"
           },
-          "leader_id": {
-            "type": "integer",
-            "nullable": true,
-            "example": 2
-          },
-          "leader_name": {
+          "created_at": {
             "type": "string",
-            "nullable": true,
-            "example": "Jane Smith"
+            "format": "date-time"
           },
-          "description": { "type": "string", "nullable": true },
-          "action_taken": { "type": "string", "nullable": true },
-          "report_notes": {
+          "updated_at": {
             "type": "string",
-            "nullable": true,
-            "description": "Catatan tambahan dari engineer pada laporan"
-          },
-          "duration_hours": { "type": "number", "nullable": true },
-          "image_url": {
-            "type": "string",
-            "nullable": true,
-            "example": "http://localhost:3000/uploads/reports/xxx.webp"
-          },
-          "created_at": { "type": "string", "format": "date-time" }
+            "format": "date-time"
+          }
         }
       },
       "SensorData": {
@@ -177,22 +229,59 @@
             "format": "date-time",
             "example": "2024-06-01T08:00:00Z"
           },
-          "rotational_speed": { "type": "number", "example": 1500 },
-          "process_temperature": { "type": "number", "example": 310.5 },
-          "air_temperature": { "type": "number", "example": 298.2 },
-          "torque": { "type": "number", "example": 45.3 },
-          "tool_wear": { "type": "number", "example": 120 },
-          "machine_age_hours": { "type": "number", "example": 5000 },
-          "hours_since_last": { "type": "number", "example": 48 },
-          "temp_rate_of_change": { "type": "number", "example": 0.5 },
-          "rpm_variance": { "type": "number", "example": 12.3 },
-          "machine_id": { "type": "integer", "example": 1 }
+          "rotational_speed": {
+            "type": "number",
+            "example": 1500
+          },
+          "process_temperature": {
+            "type": "number",
+            "example": 310.5
+          },
+          "air_temperature": {
+            "type": "number",
+            "example": 298.2
+          },
+          "torque": {
+            "type": "number",
+            "example": 45.3
+          },
+          "tool_wear": {
+            "type": "number",
+            "example": 120
+          },
+          "machine_age_hours": {
+            "type": "number",
+            "example": 5000
+          },
+          "hours_since_last": {
+            "type": "number",
+            "example": 48
+          },
+          "temp_rate_of_change": {
+            "type": "number",
+            "example": 0.5
+          },
+          "rpm_variance": {
+            "type": "number",
+            "example": 12.3
+          },
+          "machine_id": {
+            "type": "integer",
+            "example": 1
+          }
         }
       },
       "TicketDetailData": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer", "example": 1 },
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "machine_id": {
+            "type": "integer",
+            "example": 1
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -210,24 +299,204 @@
             "nullable": true,
             "description": "Catatan admin (sebelum assign) atau alasan reject laporan"
           },
-          "machine_name": { "type": "string", "example": "Mesin Bubut A1" },
-          "rul_hours": { "type": "number", "example": 120.5 },
-          "rul_days": { "type": "number", "example": 5.02 },
-          "maintenance_status": { "type": "string", "example": "Critical" },
-          "priority": { "type": "string", "example": "High" },
+          "machine_name": {
+            "type": "string",
+            "example": "Mesin Bubut A1"
+          },
+          "rul_hours": {
+            "type": "number",
+            "example": 120.5
+          },
+          "rul_days": {
+            "type": "number",
+            "example": 5.02
+          },
+          "maintenance_status": {
+            "type": "string",
+            "example": "Critical"
+          },
+          "priority": {
+            "type": "string",
+            "example": "High"
+          },
           "action": {
             "type": "string",
             "example": "Segera lakukan penggantian komponen"
           },
-          "confidence": { "type": "number", "example": 0.92 },
-          "type": { "type": "string", "example": "Tool Wear Failure" },
+          "confidence": {
+            "type": "number",
+            "example": 0.92
+          },
+          "type": {
+            "type": "string",
+            "example": "Tool Wear Failure"
+          },
           "engineers": {
             "type": "array",
             "nullable": true,
             "description": "Daftar engineer yang ditugaskan (1 Leader + 0 atau lebih Member)",
-            "items": { "$ref": "#/components/schemas/TicketAssignee" }
+            "items": {
+              "$ref": "#/components/schemas/TicketAssignee"
+            }
           },
-          "created_at": { "type": "string", "format": "date-time" }
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TicketListItem": {
+        "type": "object",
+        "description": "Ringkasan tiket untuk daftar (GET /api/ticket-maintenance).",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WaitingAssignment",
+              "Assigned",
+              "InProgress",
+              "WaitingApproval",
+              "Done",
+              "Rejected"
+            ],
+            "example": "WaitingAssignment"
+          },
+          "machine_name": {
+            "type": "string",
+            "example": "Mesin Bubut A1"
+          },
+          "type": {
+            "type": "string",
+            "example": "Tool Wear Failure"
+          },
+          "priority": {
+            "type": "string",
+            "example": "High"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "StartTicketResult": {
+        "type": "object",
+        "description": "Hasil dari PATCH /api/ticket-maintenance/{id}/start.",
+        "properties": {
+          "machine_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "added_member_ids": {
+            "type": "array",
+            "description": "Daftar ID member baru yang berhasil ditambahkan saat start (kosong jika tidak ada)",
+            "items": {
+              "type": "integer"
+            },
+            "example": [6, 7]
+          }
+        }
+      },
+      "ApproveTicketResult": {
+        "type": "object",
+        "description": "Hasil dari PATCH /api/ticket-maintenance/{id}/approve.",
+        "properties": {
+          "machine_id": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "MaintenanceReportData": {
+        "type": "object",
+        "description": "Detail laporan penyelesaian tiket beserta foto dan engineer pengerja.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "maintenance_ticket_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "example": "Ditemukan keausan pada mata pahat akibat gesekan berlebih"
+          },
+          "action_taken": {
+            "type": "string",
+            "example": "Penggantian mata pahat dan pelumasan ulang"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Catatan tambahan dari engineer (opsional)",
+            "example": "Disarankan pengecekan rutin setiap 200 jam"
+          },
+          "duration_hours": {
+            "type": "number",
+            "example": 2.5
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "image_urls": {
+            "type": "array",
+            "nullable": true,
+            "description": "Daftar URL foto bukti pekerjaan (bisa lebih dari satu jika pernah submit ulang)",
+            "items": {
+              "type": "string",
+              "example": "/uploads/reports/1717200000-1.webp"
+            }
+          },
+          "engineers": {
+            "type": "array",
+            "nullable": true,
+            "description": "Daftar engineer yang ditugaskan (1 Leader + 0 atau lebih Member)",
+            "items": {
+              "$ref": "#/components/schemas/TicketAssignee"
+            }
+          }
+        }
+      },
+      "ChatbotRequest": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Pertanyaan atau pesan pengguna untuk chatbot",
+            "example": "bagaimana kondisi mesin lathe pro 200?"
+          },
+          "sessionId": {
+            "type": "integer",
+            "description": "ID sesi percakapan sebelumnya (opsional). Jika diisi, chatbot akan melanjutkan konteks percakapan yang sama; jika tidak diisi, sesi baru akan dibuat.",
+            "example": 2
+          }
+        }
+      },
+      "ChatbotResponseData": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "integer",
+            "description": "ID sesi percakapan (gunakan pada request selanjutnya untuk melanjutkan konteks)",
+            "example": 2
+          },
+          "answer": {
+            "type": "string",
+            "description": "Jawaban dari chatbot",
+            "example": "Berdasarkan informasi yang tersedia, mesin lathe pro 200 dengan kode MCH-011 sedang dalam kondisi aktif dan terinstal di Plant A - Line 1 sejak tanggal 10 Maret 2021."
+          }
         }
       }
     },
@@ -236,8 +505,13 @@
         "description": "Token tidak valid atau tidak ada",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-            "example": { "status": "fail", "message": "Token tidak valid" }
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Token tidak valid"
+            }
           }
         }
       },
@@ -245,8 +519,13 @@
         "description": "Tidak memiliki izin akses",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-            "example": { "status": "fail", "message": "Akses ditolak" }
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Akses ditolak"
+            }
           }
         }
       },
@@ -254,8 +533,13 @@
         "description": "Data tidak ditemukan",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
-            "example": { "status": "fail", "message": "Data tidak ditemukan" }
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "status": "fail",
+              "message": "Data tidak ditemukan"
+            }
           }
         }
       }
@@ -280,7 +564,10 @@
                     "format": "email",
                     "example": "admin@example.com"
                   },
-                  "password": { "type": "string", "example": "password123" }
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
                 }
               }
             }
@@ -292,7 +579,9 @@
             "headers": {
               "Set-Cookie": {
                 "description": "refreshToken cookie (HttpOnly)",
-                "schema": { "type": "string" }
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -300,14 +589,20 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
                         "user": {
                           "type": "object",
                           "properties": {
-                            "id": { "type": "integer", "example": 1 },
+                            "id": {
+                              "type": "integer",
+                              "example": 1
+                            },
                             "name": {
                               "type": "string",
                               "example": "Admin User"
@@ -316,7 +611,10 @@
                               "type": "string",
                               "example": "admin@example.com"
                             },
-                            "role": { "type": "string", "example": "Admin" }
+                            "role": {
+                              "type": "string",
+                              "example": "Admin"
+                            }
                           }
                         },
                         "accessToken": {
@@ -334,7 +632,9 @@
             "description": "Email atau password salah",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "status": "fail",
                   "message": "Username atau password salah"
@@ -353,7 +653,9 @@
             "in": "cookie",
             "name": "refreshToken",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Refresh token yang disimpan di cookie"
           }
         ],
@@ -363,7 +665,9 @@
             "headers": {
               "Set-Cookie": {
                 "description": "refreshToken cookie baru (HttpOnly)",
-                "schema": { "type": "string" }
+                "schema": {
+                  "type": "string"
+                }
               }
             },
             "content": {
@@ -371,20 +675,33 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
                         "user": {
                           "type": "object",
                           "properties": {
-                            "id": { "type": "integer" },
-                            "name": { "type": "string" },
-                            "email": { "type": "string" },
-                            "role": { "type": "string" }
+                            "id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "role": {
+                              "type": "string"
+                            }
                           }
                         },
-                        "accessToken": { "type": "string" }
+                        "accessToken": {
+                          "type": "string"
+                        }
                       }
                     }
                   }
@@ -396,7 +713,9 @@
             "description": "Refresh token tidak valid atau tidak ditemukan",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -411,7 +730,9 @@
             "in": "cookie",
             "name": "refreshToken",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -422,7 +743,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "message": {
                       "type": "string",
                       "example": "Logout berhasil"
@@ -436,7 +760,9 @@
             "description": "Refresh token tidak ditemukan di cookie",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -448,12 +774,18 @@
         "tags": ["Users"],
         "summary": "Ambil semua pengguna",
         "description": "Mengambil daftar seluruh pengguna. Hanya bisa diakses oleh Admin.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "query",
             "name": "search",
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Cari pengguna berdasarkan nama atau email"
           }
         ],
@@ -465,13 +797,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
                         "users": {
                           "type": "array",
-                          "items": { "$ref": "#/components/schemas/UserData" }
+                          "items": {
+                            "$ref": "#/components/schemas/UserData"
+                          }
                         }
                       }
                     }
@@ -480,15 +817,23 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
         }
       },
       "post": {
         "tags": ["Users"],
         "summary": "Buat pengguna baru",
         "description": "Membuat pengguna baru. Hanya bisa diakses oleh Admin.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -503,8 +848,14 @@
                   "role"
                 ],
                 "properties": {
-                  "employee_id": { "type": "string", "example": "EMP-005" },
-                  "name": { "type": "string", "example": "Jane Smith" },
+                  "employee_id": {
+                    "type": "string",
+                    "example": "EMP-005"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Jane Smith"
+                  },
                   "email": {
                     "type": "string",
                     "format": "email",
@@ -533,11 +884,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "user": { "$ref": "#/components/schemas/UserData" }
+                        "user": {
+                          "$ref": "#/components/schemas/UserData"
+                        }
                       }
                     }
                   }
@@ -549,7 +905,9 @@
             "description": "Data tidak valid atau email sudah digunakan",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "status": "fail",
                   "message": "Email sudah digunakan"
@@ -557,8 +915,12 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
         }
       }
     },
@@ -567,13 +929,19 @@
         "tags": ["Users"],
         "summary": "Ambil pengguna berdasarkan ID",
         "description": "Mengambil detail pengguna berdasarkan ID. Hanya bisa diakses oleh Admin.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID pengguna"
           }
         ],
@@ -585,11 +953,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "user": { "$ref": "#/components/schemas/UserData" }
+                        "user": {
+                          "$ref": "#/components/schemas/UserData"
+                        }
                       }
                     }
                   }
@@ -597,22 +970,34 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       },
       "put": {
         "tags": ["Users"],
         "summary": "Perbarui data pengguna",
         "description": "Memperbarui nama, password, dan/atau role pengguna. Pengguna hanya bisa memperbarui data dirinya sendiri, kecuali Admin yang bisa memperbarui siapa saja dan mengubah role.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID pengguna yang akan diperbarui"
           }
         ],
@@ -624,7 +1009,10 @@
                 "type": "object",
                 "required": ["name", "password"],
                 "properties": {
-                  "name": { "type": "string", "example": "Jane Smith Updated" },
+                  "name": {
+                    "type": "string",
+                    "example": "Jane Smith Updated"
+                  },
                   "password": {
                     "type": "string",
                     "example": "newSecurePass123"
@@ -648,7 +1036,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "message": {
                       "type": "string",
                       "example": "User berhasil diperbarui"
@@ -658,22 +1049,34 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       },
       "delete": {
         "tags": ["Users"],
         "summary": "Hapus pengguna",
         "description": "Menghapus pengguna berdasarkan ID. Hanya bisa diakses oleh Admin.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID pengguna yang akan dihapus"
           }
         ],
@@ -685,7 +1088,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "message": {
                       "type": "string",
                       "example": "User berhasil dihapus"
@@ -695,9 +1101,15 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       }
     },
@@ -706,12 +1118,18 @@
         "tags": ["Machines"],
         "summary": "Ambil semua mesin",
         "description": "Mengambil daftar seluruh mesin. Bisa diakses oleh Admin dan Engineer.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "query",
             "name": "search",
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Cari mesin berdasarkan nama atau kode mesin"
           }
         ],
@@ -723,7 +1141,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -740,14 +1161,20 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       },
       "post": {
         "tags": ["Machines"],
         "summary": "Tambah mesin baru",
         "description": "Membuat data mesin baru. Hanya bisa diakses oleh Admin.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -762,9 +1189,18 @@
                   "install_date"
                 ],
                 "properties": {
-                  "name": { "type": "string", "example": "Mesin Frais B2" },
-                  "code": { "type": "string", "example": "MCH-002" },
-                  "type": { "type": "string", "example": "Milling" },
+                  "name": {
+                    "type": "string",
+                    "example": "Mesin Frais B2"
+                  },
+                  "code": {
+                    "type": "string",
+                    "example": "MCH-002"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "Milling"
+                  },
                   "location": {
                     "type": "string",
                     "example": "Lantai 2 - Area B"
@@ -787,7 +1223,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -805,12 +1244,18 @@
             "description": "Data tidak valid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
         }
       }
     },
@@ -819,13 +1264,19 @@
         "tags": ["Machines"],
         "summary": "Ambil mesin berdasarkan ID",
         "description": "Mengambil detail mesin berdasarkan ID.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID mesin"
           }
         ],
@@ -837,7 +1288,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -851,21 +1305,31 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       },
       "put": {
         "tags": ["Machines"],
         "summary": "Perbarui data mesin",
         "description": "Memperbarui data mesin berdasarkan ID. Hanya bisa diakses oleh Admin.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID mesin yang akan diperbarui"
           }
         ],
@@ -887,8 +1351,14 @@
                     "type": "string",
                     "example": "Mesin Frais B2 Updated"
                   },
-                  "code": { "type": "string", "example": "MCH-002" },
-                  "type": { "type": "string", "example": "Milling" },
+                  "code": {
+                    "type": "string",
+                    "example": "MCH-002"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "Milling"
+                  },
                   "location": {
                     "type": "string",
                     "example": "Lantai 2 - Area C"
@@ -911,7 +1381,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -925,22 +1398,34 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       },
       "delete": {
         "tags": ["Machines"],
         "summary": "Hapus mesin",
         "description": "Menghapus data mesin berdasarkan ID. Hanya bisa diakses oleh Admin.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID mesin yang akan dihapus"
           }
         ],
@@ -952,7 +1437,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "message": {
                       "type": "string",
                       "example": "Machine deleted successfully"
@@ -962,9 +1450,15 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       }
     },
@@ -986,7 +1480,9 @@
                   {
                     "title": "Batch sensor data",
                     "type": "array",
-                    "items": { "$ref": "#/components/schemas/SensorData" }
+                    "items": {
+                      "$ref": "#/components/schemas/SensorData"
+                    }
                   }
                 ]
               },
@@ -1050,7 +1546,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "message": {
                       "type": "string",
                       "example": "Data sensor berhasil dibuat dan dikirim ke antrian prediksi"
@@ -1064,7 +1563,9 @@
             "description": "Data sensor tidak valid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1076,7 +1577,11 @@
         "tags": ["Ticket Maintenance"],
         "summary": "Ambil semua tiket",
         "description": "Admin mendapat semua tiket. Engineer hanya mendapat tiket di mana dia berperan sebagai **Leader** (tiket tidak muncul di daftar Member).",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Daftar tiket berhasil diambil",
@@ -1085,13 +1590,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
                         "tickets": {
                           "type": "array",
-                          "items": { "$ref": "#/components/schemas/TicketData" }
+                          "items": {
+                            "$ref": "#/components/schemas/TicketListItem"
+                          }
                         }
                       }
                     }
@@ -1100,7 +1610,9 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
@@ -1109,13 +1621,19 @@
         "tags": ["Ticket Maintenance"],
         "summary": "Ambil tiket berdasarkan ID",
         "description": "Mengambil detail tiket berdasarkan ID, termasuk daftar engineer (Leader & Member) yang ditugaskan. Admin bisa melihat semua tiket, Engineer hanya bisa melihat tiket di mana dia terdaftar sebagai Leader atau Member.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID tiket"
           }
         ],
@@ -1127,7 +1645,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -1141,22 +1662,34 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       },
       "delete": {
         "tags": ["Ticket Maintenance"],
         "summary": "Hapus tiket",
         "description": "Admin menghapus tiket yang belum ditugaskan / tidak diperlukan lagi. Hanya diizinkan ketika status tiket masih `WaitingAssignment`.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID tiket"
           }
         ],
@@ -1168,7 +1701,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "message": {
                       "type": "string",
                       "example": "Tiket berhasil dihapus"
@@ -1182,7 +1718,9 @@
             "description": "Status tiket bukan WaitingAssignment sehingga tidak boleh dihapus",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "status": "fail",
                   "message": "Status tiket harus WaitingAssignment"
@@ -1190,9 +1728,15 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       }
     },
@@ -1200,14 +1744,20 @@
       "patch": {
         "tags": ["Ticket Maintenance"],
         "summary": "Tugaskan leader & member engineer ke tiket",
-        "description": "Admin menugaskan 1 orang engineer sebagai Leader dan (opsional) beberapa engineer lain sebagai Member, sekaligus bisa menambahkan catatan sebelum pekerjaan dimulai. Status tiket harus `WaitingAssignment`, akan berubah menjadi `Assigned`. Hanya Leader yang dapat memulai (`/start`) dan submit (`/submit`) tiket; tiket hanya akan muncul di daftar tiket milik Leader.",
-        "security": [{ "BearerAuth": [] }],
+        "description": "Admin menugaskan 1 orang engineer sebagai Leader dan (opsional) beberapa engineer lain sebagai Member, sekaligus bisa menambahkan catatan sebelum pekerjaan dimulai. Status tiket harus `WaitingAssignment`, akan berubah menjadi `Assigned`. Hanya Leader yang dapat memulai (`/start`) dan submit (`/submit`) tiket; tiket hanya akan muncul di daftar tiket milik Leader. Leader dapat menambahkan Member lagi saat memanggil `/start`, dan Admin dapat mengganti/menambah/menghapus Leader & Member melalui `/assignments` setelah tiket `InProgress`.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID tiket"
           }
         ],
@@ -1227,7 +1777,9 @@
                   "member_ids": {
                     "type": "array",
                     "description": "Daftar ID pengguna dengan role Engineer sebagai Member (opsional)",
-                    "items": { "type": "string" },
+                    "items": {
+                      "type": "string"
+                    },
                     "example": ["4", "5"]
                   },
                   "notes": {
@@ -1248,11 +1800,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                        "ticket": {
+                          "$ref": "#/components/schemas/TicketData"
+                        }
                       }
                     }
                   }
@@ -1264,12 +1821,18 @@
             "description": "Data tidak valid, status tiket bukan WaitingAssignment, atau engineer tidak ditemukan",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
         }
       }
     },
@@ -1277,17 +1840,43 @@
       "patch": {
         "tags": ["Ticket Maintenance"],
         "summary": "Mulai pengerjaan tiket",
-        "description": "Leader tiket memulai pengerjaan tiket yang telah ditugaskan kepadanya. Status tiket harus `Assigned`, akan berubah menjadi `InProgress`. Status seluruh engineer yang ditugaskan (Leader & Member) menjadi `Onduty` dan status mesin menjadi `Maintenance`.",
-        "security": [{ "BearerAuth": [] }],
+        "description": "Leader tiket memulai pengerjaan tiket yang telah ditugaskan kepadanya. Status tiket harus `Assigned`, akan berubah menjadi `InProgress`. Leader juga dapat menyertakan `member_ids` baru untuk ditambahkan ke tiket dalam request yang sama (dilakukan sebelum status berubah). Status seluruh engineer yang ditugaskan (Leader & Member, termasuk yang baru ditambahkan) menjadi `Onduty` dan status mesin menjadi `Maintenance`. Jika seorang engineer sedang menangani mesin lain yang juga `InProgress`, statusnya tetap `Onduty` (tidak dihitung ulang secara individual per tiket).",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID tiket"
           }
         ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "member_ids": {
+                    "type": "array",
+                    "description": "Daftar ID pengguna dengan role Engineer untuk ditambahkan sebagai Member baru sebelum tiket dimulai (opsional). Member yang sudah terdaftar akan diabaikan.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["6", "7"]
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Tiket berhasil dimulai",
@@ -1296,11 +1885,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                        "ticket": {
+                          "$ref": "#/components/schemas/StartTicketResult"
+                        }
                       }
                     }
                   }
@@ -1308,12 +1902,162 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": {
-            "description": "Engineer bukan Leader tiket ini atau status tiket tidak sesuai",
+          "400": {
+            "description": "Salah satu member_ids bukan Engineer yang valid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "Engineer bukan Leader tiket ini atau status tiket tidak sesuai (harus Assigned)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ticket-maintenance/{id}/assignments": {
+      "patch": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Kelola leader & member tiket yang sedang berjalan",
+        "description": "Admin dapat mengganti Leader, menambahkan Member baru, dan/atau menghapus Member dari tiket yang statusnya `InProgress` — misalnya karena leader atau member sedang sakit dan perlu digantikan. Minimal salah satu dari `leader_id`, `add_member_ids`, atau `remove_member_ids` harus diisi. Status seluruh engineer yang terdampak (leader/member lama & baru) akan disinkronkan: kembali ke `Active` jika tidak memiliki tiket `InProgress` lain, atau tetap/menjadi `Onduty` jika masih ada. Status mesin juga disinkronkan ulang.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID tiket"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "leader_id": {
+                    "type": "string",
+                    "description": "ID pengguna dengan role Engineer sebagai pengganti Leader (opsional). Jika engineer ini sebelumnya Member di tiket ini, otomatis dipindah menjadi Leader.",
+                    "example": "8"
+                  },
+                  "add_member_ids": {
+                    "type": "array",
+                    "description": "Daftar ID pengguna dengan role Engineer untuk ditambahkan sebagai Member baru (opsional). ID yang sudah terdaftar diabaikan.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["9"]
+                  },
+                  "remove_member_ids": {
+                    "type": "array",
+                    "description": "Daftar ID Member yang akan dihapus dari tiket (opsional). Hanya menghapus role Member, tidak dapat menghapus Leader dengan field ini.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["4"]
+                  }
+                }
+              },
+              "examples": {
+                "ganti_leader": {
+                  "summary": "Ganti leader karena sakit",
+                  "value": {
+                    "leader_id": "8"
+                  }
+                },
+                "ganti_member": {
+                  "summary": "Ganti member: hapus yang sakit, tambah pengganti",
+                  "value": {
+                    "remove_member_ids": ["4"],
+                    "add_member_ids": ["9"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Assignment tiket berhasil diperbarui",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ticket_id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "affected_user_ids": {
+                          "type": "array",
+                          "description": "ID seluruh engineer (lama & baru) yang terdampak perubahan dan statusnya disinkronkan ulang",
+                          "items": {
+                            "type": "integer"
+                          },
+                          "example": [3, 8, 4, 9]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tidak ada field yang diisi, engineer tidak valid, atau status tiket bukan InProgress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "status": "fail",
+                  "message": "Status tiket harus InProgress"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Tiket tidak ditemukan atau leader tiket ini tidak ditemukan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1325,13 +2069,19 @@
         "tags": ["Ticket Maintenance"],
         "summary": "Submit laporan penyelesaian",
         "description": "Leader tiket mengirimkan laporan penyelesaian beserta foto bukti. Status tiket harus `InProgress` (submit pertama kali) atau `Rejected` (submit ulang setelah laporan ditolak Admin, laporan lama akan diperbarui beserta foto), akan berubah menjadi `WaitingApproval`. Request menggunakan `multipart/form-data`.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID tiket"
           }
         ],
@@ -1386,11 +2136,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                        "ticket": {
+                          "$ref": "#/components/schemas/TicketData"
+                        }
                       }
                     }
                   }
@@ -1402,7 +2157,9 @@
             "description": "Data tidak valid atau gambar tidak diunggah",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
                 "example": {
                   "status": "fail",
                   "message": "Gambar wajib diunggah"
@@ -1410,12 +2167,16 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "403": {
             "description": "Engineer bukan Leader tiket ini atau status tiket tidak sesuai (harus InProgress atau Rejected)",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           }
@@ -1427,13 +2188,19 @@
         "tags": ["Ticket Maintenance"],
         "summary": "Setujui penyelesaian tiket",
         "description": "Admin menyetujui laporan penyelesaian. Status tiket harus `WaitingApproval`, akan berubah menjadi `Done`. Status seluruh engineer yang ditugaskan kembali menjadi `Active` (jika tidak ada tiket InProgress lain) dan status mesin kembali menjadi `Active`.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID tiket"
           }
         ],
@@ -1445,11 +2212,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                        "ticket": {
+                          "$ref": "#/components/schemas/ApproveTicketResult"
+                        }
                       }
                     }
                   }
@@ -1461,12 +2233,18 @@
             "description": "Status tiket bukan WaitingApproval",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
         }
       }
     },
@@ -1475,13 +2253,19 @@
         "tags": ["Ticket Maintenance"],
         "summary": "Tolak laporan penyelesaian",
         "description": "Admin menolak laporan penyelesaian yang belum sesuai, disertai alasan. Status tiket harus `WaitingApproval`, akan berubah menjadi `Rejected`. Leader tiket kemudian dapat memperbarui dan submit ulang laporan melalui endpoint `/submit`.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "path",
             "name": "id",
             "required": true,
-            "schema": { "type": "integer" },
+            "schema": {
+              "type": "integer"
+            },
             "description": "ID tiket"
           }
         ],
@@ -1511,11 +2295,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
-                        "ticket": { "$ref": "#/components/schemas/TicketData" }
+                        "ticket": {
+                          "$ref": "#/components/schemas/TicketData"
+                        }
                       }
                     }
                   }
@@ -1527,12 +2316,87 @@
             "description": "Alasan (notes) tidak diisi atau status tiket bukan WaitingApproval",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/ticket-maintenance/{id}/report": {
+      "get": {
+        "tags": ["Ticket Maintenance"],
+        "summary": "Ambil laporan penyelesaian tiket",
+        "description": "Mengambil detail laporan penyelesaian sebuah tiket (deskripsi, tindakan, durasi, foto bukti) beserta daftar engineer yang ditugaskan. Admin bisa melihat laporan tiket manapun. Engineer hanya bisa melihat laporan tiket di mana dia terdaftar sebagai Leader atau Member.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID tiket"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Laporan tiket berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "report": {
+                          "$ref": "#/components/schemas/MaintenanceReportData"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Tiket tidak ditemukan atau laporan untuk tiket ini belum tersedia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "status": "fail",
+                  "message": "Laporan untuk tiket ini belum tersedia"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1541,7 +2405,11 @@
         "tags": ["Dashboard"],
         "summary": "Ambil data dashboard",
         "description": "Mengambil semua data ringkasan untuk dashboard: total mesin, status mesin, tiket aktif, status engineer, jenis kerusakan, mesin kritis, mesin bermasalah, pemeliharaan bulanan, dan tiket terbaru.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Data dashboard berhasil diambil",
@@ -1550,7 +2418,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "success" },
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -1576,7 +2447,10 @@
                                 "type": "string",
                                 "example": "Active"
                               },
-                              "total": { "type": "string", "example": "20" }
+                              "total": {
+                                "type": "string",
+                                "example": "20"
+                              }
                             }
                           }
                         },
@@ -1589,7 +2463,10 @@
                                 "type": "string",
                                 "example": "Active"
                               },
-                              "total": { "type": "string", "example": "8" }
+                              "total": {
+                                "type": "string",
+                                "example": "8"
+                              }
                             }
                           }
                         },
@@ -1598,8 +2475,14 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "status": { "type": "string", "example": "Done" },
-                              "total": { "type": "string", "example": "50" }
+                              "status": {
+                                "type": "string",
+                                "example": "Done"
+                              },
+                              "total": {
+                                "type": "string",
+                                "example": "50"
+                              }
                             }
                           }
                         },
@@ -1612,7 +2495,10 @@
                                 "type": "string",
                                 "example": "Tool Wear Failure"
                               },
-                              "total": { "type": "string", "example": "15" }
+                              "total": {
+                                "type": "string",
+                                "example": "15"
+                              }
                             }
                           }
                         },
@@ -1622,12 +2508,17 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "id": { "type": "integer" },
+                              "id": {
+                                "type": "integer"
+                              },
                               "name": {
                                 "type": "string",
                                 "example": "Mesin Bubut A1"
                               },
-                              "rul_days": { "type": "number", "example": 2.5 }
+                              "rul_days": {
+                                "type": "number",
+                                "example": 2.5
+                              }
                             }
                           }
                         },
@@ -1637,7 +2528,9 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "id": { "type": "integer" },
+                              "id": {
+                                "type": "integer"
+                              },
                               "name": {
                                 "type": "string",
                                 "example": "Mesin Press C3"
@@ -1659,7 +2552,10 @@
                                 "type": "string",
                                 "format": "date-time"
                               },
-                              "total": { "type": "string", "example": "12" }
+                              "total": {
+                                "type": "string",
+                                "example": "12"
+                              }
                             }
                           }
                         },
@@ -1669,10 +2565,18 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "id": { "type": "integer" },
-                              "status": { "type": "string" },
-                              "machine_name": { "type": "string" },
-                              "type": { "type": "string" },
+                              "id": {
+                                "type": "integer"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "machine_name": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
                               "engineer_name": {
                                 "type": "string",
                                 "nullable": true
@@ -1691,7 +2595,106 @@
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthorized" }
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/chatbot": {
+      "post": {
+        "tags": ["Chatbot"],
+        "summary": "Kirim pesan ke chatbot",
+        "description": "Mengirimkan pesan/pertanyaan ke chatbot AI seputar data mesin, tiket, atau pemeliharaan. Jika `sessionId` disertakan, chatbot akan melanjutkan konteks percakapan sebelumnya (multi-turn); jika tidak, sesi percakapan baru akan dibuat dan `sessionId` baru dikembalikan pada response untuk dipakai di request selanjutnya.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatbotRequest"
+              },
+              "examples": {
+                "pertanyaan_awal": {
+                  "summary": "Pertanyaan awal (tanpa sessionId)",
+                  "value": {
+                    "message": "bagaimana kondisi mesin lathe pro 200?"
+                  }
+                },
+                "pertanyaan_lanjutan": {
+                  "summary": "Pertanyaan lanjutan (dengan sessionId)",
+                  "value": {
+                    "message": "dimaana lokasinya",
+                    "sessionId": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Jawaban chatbot berhasil didapatkan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ChatbotResponseData"
+                    }
+                  }
+                },
+                "examples": {
+                  "pertanyaan_awal": {
+                    "summary": "Response untuk pertanyaan awal",
+                    "value": {
+                      "status": "success",
+                      "data": {
+                        "sessionId": 2,
+                        "answer": "Berdasarkan informasi yang tersedia, mesin lathe pro 200 dengan kode MCH-011 sedang dalam kondisi aktif dan terinstal di Plant A - Line 1 sejak tanggal 10 Maret 2021."
+                      }
+                    }
+                  },
+                  "pertanyaan_lanjutan": {
+                    "summary": "Response untuk pertanyaan lanjutan (sessionId sama)",
+                    "value": {
+                      "status": "success",
+                      "data": {
+                        "sessionId": 2,
+                        "answer": "Lokasi mesin lathe pro 200 dengan kode MCH-011 adalah Plant A - Line 1."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Pesan tidak diisi atau sessionId tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "status": "fail",
+                  "message": "Pesan wajib diisi"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     }

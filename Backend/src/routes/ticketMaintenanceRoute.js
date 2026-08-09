@@ -24,11 +24,20 @@ router.patch(
   ticketMaintenanceController.patchAssignTicket,
 );
 
+// Fitur 3 + tambah member: leader mulai maintenance, boleh sertakan member_ids baru
 router.patch(
   "/:id/start",
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Engineer"),
   ticketMaintenanceController.patchStartTicket,
+);
+
+// Fitur baru: admin kelola leader/member saat tiket InProgress (mis. leader/member sakit)
+router.patch(
+  "/:id/assignments",
+  authHandler.authenticationHandler,
+  authHandler.authorizationHandler("Admin"),
+  ticketMaintenanceController.patchManageAssignments,
 );
 
 router.patch(
@@ -60,6 +69,12 @@ router.delete(
   authHandler.authenticationHandler,
   authHandler.authorizationHandler("Admin"),
   ticketMaintenanceController.deleteTicket,
+);
+
+router.get(
+  "/:id/report",
+  authHandler.authenticationHandler,
+  ticketMaintenanceController.getTicketReport,
 );
 
 export default router;

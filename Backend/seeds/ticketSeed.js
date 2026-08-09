@@ -18,6 +18,9 @@ const FAILURE_TYPES = [
 ];
 const PRIORITIES = ["Low", "Medium", "High", "Critical"];
 
+// URL gambar default untuk seed laporan (tidak perlu file unik per laporan)
+const DEFAULT_REPORT_IMAGE_URL = "/uploads/reports/default.webp";
+
 // ==== HELPERS ====
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const randFloat = (min, max, decimals = 2) =>
@@ -42,32 +45,12 @@ const randomDateInMonth = (monthsAgo) => {
   return new Date(base.getFullYear(), base.getMonth(), day, hour, minute);
 };
 
+// Hanya dua status: WaitingAssignment atau Done.
 // Makin lama bulannya, makin besar peluang statusnya sudah Done.
-// Makin baru bulannya, makin besar peluang masih berjalan.
+// Makin baru bulannya, makin besar peluang masih WaitingAssignment.
 const pickStatusForMonth = (monthsAgo) => {
-  const doneWeight = Math.min(0.85, 0.35 + monthsAgo * 0.1);
-  const r = Math.random();
-
-  if (r < doneWeight) return "Done";
-
-  if (monthsAgo === 0) {
-    return pick([
-      "WaitingAssignment",
-      "WaitingAssignment",
-      "Assigned",
-      "InProgress",
-      "InProgress",
-      "WaitingApproval",
-    ]);
-  }
-
-  return pick([
-    "WaitingAssignment",
-    "Assigned",
-    "InProgress",
-    "WaitingApproval",
-    "Rejected",
-  ]);
+  const doneWeight = Math.min(0.9, 0.4 + monthsAgo * 0.1);
+  return Math.random() < doneWeight ? "Done" : "WaitingAssignment";
 };
 
 const seedTicketChain = async (
@@ -154,11 +137,9 @@ const seedTicketChain = async (
 
   // 4. maintenance_tickets
   const ticketNotes =
-    status === "Rejected"
-      ? "Laporan kurang detail, mohon dilengkapi kembali"
-      : Math.random() < 0.3
-        ? "Prioritaskan pengecekan komponen terkait juga"
-        : null;
+    Math.random() < 0.3
+      ? "Prioritaskan pengecekan komponen terkait juga"
+      : null;
 
   const { rows: ticketRows } = await client.query(
     `
@@ -171,8 +152,8 @@ const seedTicketChain = async (
   );
   const ticketId = ticketRows[0].id;
 
-  // 5. assignment (kalau statusnya sudah lewat WaitingAssignment)
-  if (status !== "WaitingAssignment" && engineerIds.length) {
+  // 5. assignment (hanya untuk tiket yang sudah Done, WaitingAssignment belum ditugaskan)
+  if (status === "Done" && engineerIds.length) {
     const team = pickMany(
       engineerIds,
       randInt(1, Math.min(3, engineerIds.length)),
@@ -199,8 +180,8 @@ const seedTicketChain = async (
     }
   }
 
-  // 6. laporan (kalau statusnya sudah pernah disubmit)
-  if (["WaitingApproval", "Done", "Rejected"].includes(status)) {
+  // 6. laporan (hanya untuk tiket yang sudah Done)
+  if (status === "Done") {
     const { rows: reportRows } = await client.query(
       `
       INSERT INTO maintenance_reports
@@ -224,7 +205,7 @@ const seedTicketChain = async (
       INSERT INTO report_images (report_id, image_url)
       VALUES ($1, $2)
       `,
-      [reportRows[0].id, `/uploads/reports/seed-${reportRows[0].id}.webp`],
+      [reportRows[0].id, DEFAULT_REPORT_IMAGE_URL],
     );
   }
 };
