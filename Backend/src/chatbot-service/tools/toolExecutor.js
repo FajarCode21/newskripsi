@@ -9,12 +9,12 @@ const toolExecutor = {
     }));
   },
 
-  execute: async (name, args) => {
+  execute: async (name, args, user) => {
     const tool = tools.find((item) => item.name === name);
     if (!tool) {
       throw new Error(`Tool "${name}" tidak ditemukan`);
     }
-    return await tool.execute(args || {});
+    return await tool.execute(args || {}, user);
   },
 
   extractContext: (name, args, result) => {

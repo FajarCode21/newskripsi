@@ -1,4 +1,4 @@
-import machineService from "../../../services/machineService.js";
+import { machineService } from "../../services/pmService.js";
 
 const getMachineInfoTool = {
   name: "get_machine_info",
