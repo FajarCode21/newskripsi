@@ -147,7 +147,7 @@ const failureStatisticService = {
 // ============================================================
 
 const ticketMaintenanceService = {
-  listAll: async ({ status, machine } = {}) => {
+  listAll: async ({ status, machine, limit = 20 } = {}) => {
     const conditions = [];
     const values = [];
 
@@ -155,7 +155,6 @@ const ticketMaintenanceService = {
       values.push(status);
       conditions.push(`mt.status = $${values.length}`);
     }
-
     if (machine) {
       values.push(machine);
       conditions.push(
@@ -164,22 +163,60 @@ const ticketMaintenanceService = {
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    values.push(limit);
 
     const { rows } = await pool.query(
       `
-      SELECT
-        mt.id, mt.status, mt.notes, mt.created_at, mt.updated_at,
-        m.code AS machine_code, m.name AS machine_name,
-        fs.type AS failure_type, fs.confidence
-      FROM maintenance_tickets mt
-      INNER JOIN machines m ON m.id = mt.machine_id
-      INNER JOIN failure_statistics fs ON fs.id = mt.failure_statistic_id
-      ${where}
-      ORDER BY mt.created_at DESC
-      `,
+    SELECT
+      mt.id, mt.status, mt.notes, mt.created_at, mt.updated_at,
+      m.code AS machine_code, m.name AS machine_name,
+      fs.type AS failure_type, fs.confidence
+    FROM maintenance_tickets mt
+    INNER JOIN machines m ON m.id = mt.machine_id
+    INNER JOIN failure_statistics fs ON fs.id = mt.failure_statistic_id
+    ${where}
+    ORDER BY mt.created_at DESC
+    LIMIT $${values.length}
+    `,
       values,
     );
+    return rows;
+  },
 
+  listByAssignedUser: async (userId, { status, machine, limit = 20 } = {}) => {
+    const conditions = ["mta.user_id = $1"];
+    const values = [userId];
+
+    if (status) {
+      values.push(status);
+      conditions.push(`mt.status = $${values.length}`);
+    }
+    if (machine) {
+      values.push(machine);
+      conditions.push(
+        `(m.code = $${values.length} OR m.name ILIKE $${values.length})`,
+      );
+    }
+
+    values.push(limit);
+
+    const { rows } = await pool.query(
+      `
+    SELECT DISTINCT
+      mt.id, mt.status, mt.notes, mt.created_at, mt.updated_at,
+      m.code AS machine_code, m.name AS machine_name,
+      fs.type AS failure_type, fs.confidence,
+      mta.role AS my_assignment_role
+    FROM maintenance_tickets mt
+    INNER JOIN maintenance_ticket_assignments mta ON mta.maintenance_ticket_id = mt.id
+    INNER JOIN machines m ON m.id = mt.machine_id
+    INNER JOIN failure_statistics fs ON fs.id = mt.failure_statistic_id
+    WHERE ${conditions.join(" AND ")}
+    ORDER BY mt.created_at DESC
+    LIMIT $${values.length}
+    `,
+      values,
+    );
     return rows;
   },
 
